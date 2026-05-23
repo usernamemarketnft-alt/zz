@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GoldRush — لوحة الأدمن</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Rajdhani:wght@600;700&family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#FFD700;--gold2:#FFA500;--dark:#07070f;--card:#101020;--card2:#161628;--green:#00ff88;--red:#ff4455;--blue:#00aaff;--purple:#aa44ff;--text:#ddd5c0;--bdr:rgba(255,255,255,.07);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--dark);color:var(--text);font-family:'Tajawal',sans-serif;min-height:100vh;display:flex;flex-direction:column;}
+
+/* LOGIN */
+#loginWrap{position:fixed;inset:0;background:var(--dark);display:flex;align-items:center;justify-content:center;z-index:999;}
+.lbox{background:var(--card2);border:1px solid rgba(255,215,0,.18);border-radius:22px;padding:2.4rem 2rem;width:320px;text-align:center;}
+.llogo{font-family:'Cinzel Decorative',serif;font-size:1.2rem;background:linear-gradient(135deg,#FFD700,#FFA500);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:.2rem;}
+.lsub{font-size:.72rem;color:rgba(255,255,255,.28);letter-spacing:2px;text-transform:uppercase;margin-bottom:1.6rem;}
+.linp{width:100%;padding:11px 14px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.1);border-radius:9px;color:white;font-size:.95rem;font-family:'Tajawal',sans-serif;outline:none;margin-bottom:.7rem;transition:border-color .2s;}
+.linp:focus{border-color:var(--gold);}
+.lbtn{width:100%;padding:12px;background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:9px;cursor:pointer;font-family:'Tajawal',sans-serif;font-weight:900;font-size:.95rem;color:#000;transition:all .2s;}
+.lbtn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(255,165,0,.35);}
+.lerr{color:var(--red);font-size:.8rem;min-height:1.1rem;margin-bottom:.4rem;}
+
+/* LAYOUT */
+#app{display:none;flex:1;display:none;}
+#app.show{display:flex;flex-direction:column;height:100vh;}
+.topbar{height:56px;background:rgba(7,7,15,.97);backdrop-filter:blur(20px);border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;padding:0 1.4rem;flex-shrink:0;}
+.tblogo{font-family:'Cinzel Decorative',serif;font-size:1rem;color:var(--gold);}
+.tbright{display:flex;align-items:center;gap:.8rem;}
+.live-dot{display:flex;align-items:center;gap:5px;font-size:.72rem;color:var(--green);font-weight:700;}
+.live-dot::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 7px var(--green);animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.abadge{background:rgba(170,68,255,.15);border:1px solid rgba(170,68,255,.28);color:var(--purple);font-size:.68rem;font-weight:700;padding:3px 9px;border-radius:18px;}
+.loutbtn{padding:7px 14px;background:rgba(255,68,85,.1);border:1px solid rgba(255,68,85,.25);border-radius:7px;cursor:pointer;color:var(--red);font-family:'Tajawal',sans-serif;font-weight:700;font-size:.8rem;}
+
+.body{display:flex;flex:1;overflow:hidden;}
+
+/* SIDEBAR */
+.sidebar{width:220px;background:var(--card);border-left:1px solid var(--bdr);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0;}
+.ns{font-size:.62rem;color:rgba(255,255,255,.2);letter-spacing:2px;text-transform:uppercase;padding:.9rem 1rem .2rem;}
+.ni{display:flex;align-items:center;gap:8px;padding:10px 1rem;cursor:pointer;color:rgba(255,255,255,.42);font-size:.86rem;font-weight:700;transition:all .18s;border-right:3px solid transparent;}
+.ni:hover{color:var(--text);background:rgba(255,255,255,.03);}
+.ni.active{color:var(--gold);background:rgba(255,215,0,.05);border-right-color:var(--gold);}
+.ni-ico{font-size:1rem;width:22px;text-align:center;}
+
+/* MAIN */
+.main{flex:1;overflow-y:auto;background:var(--dark);}
+.pg{display:none;padding:1.4rem;}
+.pg.active{display:block;}
+
+/* CARDS */
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:.9rem;margin-bottom:1.4rem;}
+.sc{background:var(--card2);border:1px solid var(--bdr);border-radius:14px;padding:1.2rem;position:relative;overflow:hidden;}
+.sc::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--acc,rgba(255,215,0,.03)),transparent);pointer-events:none;}
+.sc-ico{font-size:1.6rem;margin-bottom:.4rem;}
+.sc-val{font-size:1.7rem;font-weight:900;font-family:'Rajdhani',sans-serif;color:var(--gold);}
+.sc-lbl{font-size:.72rem;color:rgba(255,255,255,.35);margin-top:1px;}
+.sc-ch{font-size:.7rem;margin-top:.3rem;font-weight:700;}
+.sc-ch.up{color:var(--green);}.sc-ch.dn{color:var(--red);}
+
+.section{background:var(--card2);border:1px solid var(--bdr);border-radius:14px;padding:1.3rem;margin-bottom:1.2rem;}
+.stitle{font-size:.92rem;font-weight:900;color:var(--text);margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;gap:6px;}
+.stitle span{color:var(--gold);}
+
+/* TOGGLE */
+.trow{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--bdr);}
+.trow:last-child{border-bottom:none;}
+.tinfo .tn{font-weight:700;font-size:.88rem;}
+.tinfo .td{font-size:.72rem;color:rgba(255,255,255,.32);margin-top:1px;}
+.tgl{position:relative;width:46px;height:25px;flex-shrink:0;}
+.tgl input{opacity:0;width:0;height:0;}
+.tsl{position:absolute;inset:0;background:rgba(255,255,255,.1);border-radius:25px;cursor:pointer;transition:.3s;}
+.tsl::before{content:'';position:absolute;height:19px;width:19px;left:3px;bottom:3px;background:rgba(255,255,255,.45);border-radius:50%;transition:.3s;}
+.tgl input:checked+.tsl{background:var(--green);}
+.tgl input:checked+.tsl::before{transform:translateX(21px);background:white;}
+
+/* SLIDER */
+.cr{margin-bottom:1.1rem;}
+.cl{display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem;}
+.cn{font-size:.84rem;font-weight:700;}
+.cv{font-size:.84rem;color:var(--gold);font-weight:900;}
+.csl{width:100%;-webkit-appearance:none;appearance:none;height:6px;border-radius:3px;background:rgba(255,255,255,.1);outline:none;cursor:pointer;}
+.csl::-webkit-slider-thumb{-webkit-appearance:none;width:17px;height:17px;border-radius:50%;background:var(--gold);cursor:pointer;box-shadow:0 0 7px rgba(255,215,0,.45);}
+.ch{font-size:.68rem;color:rgba(255,255,255,.28);margin-top:.25rem;}
+
+/* INPUT */
+.inp{width:100%;padding:10px 13px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.1);border-radius:9px;color:white;font-size:.9rem;font-family:'Tajawal',sans-serif;outline:none;transition:border-color .2s;margin-bottom:.5rem;}
+.inp:focus{border-color:var(--gold);}
+select.inp{cursor:pointer;}
+
+/* MULTIPLIER INPUTS */
+.mg{display:flex;gap:5px;flex-wrap:wrap;}
+.mi{width:62px;padding:7px 4px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.1);border-radius:7px;color:var(--gold);font-size:.8rem;font-weight:700;text-align:center;outline:none;transition:border-color .2s;}
+.mi:focus{border-color:var(--gold);}
+.ml{font-size:.6rem;color:rgba(255,255,255,.28);text-align:center;margin-top:1px;}
+.mit{display:flex;flex-direction:column;align-items:center;}
+
+/* BUTTONS */
+.btn{padding:10px 20px;border:none;border-radius:9px;cursor:pointer;font-family:'Tajawal',sans-serif;font-weight:700;font-size:.86rem;transition:all .18s;}
+.btng{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;}
+.btng:hover{transform:translateY(-2px);box-shadow:0 5px 18px rgba(255,165,0,.35);}
+.btnr{background:rgba(255,68,85,.13);border:1px solid rgba(255,68,85,.28);color:var(--red);}
+.btnr:hover{background:rgba(255,68,85,.22);}
+.btnv{background:rgba(0,255,136,.1);border:1px solid rgba(0,255,136,.25);color:var(--green);}
+.btnv:hover{background:rgba(0,255,136,.18);}
+.btnp{background:rgba(170,68,255,.13);border:1px solid rgba(170,68,255,.28);color:var(--purple);}
+.btnsm{padding:7px 13px;font-size:.78rem;}
+.brow{display:flex;gap:.6rem;margin-top:1rem;flex-wrap:wrap;}
+
+/* TABLE */
+.dt{width:100%;border-collapse:collapse;font-size:.8rem;}
+.dt th{padding:8px 10px;text-align:right;color:rgba(255,255,255,.32);font-weight:700;border-bottom:1px solid var(--bdr);}
+.dt td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.03);}
+.dt tr:hover td{background:rgba(255,255,255,.02);}
+.tw{color:var(--green);font-weight:700;}
+.tl{color:var(--red);font-weight:700;}
+.badge{padding:2px 8px;border-radius:16px;font-size:.68rem;font-weight:700;}
+.bon{background:rgba(0,255,136,.1);color:var(--green);}
+.boff{background:rgba(255,68,85,.1);color:var(--red);}
+.brig{background:rgba(255,68,85,.13);border:1px solid rgba(255,68,85,.28);color:var(--red);padding:3px 10px;border-radius:16px;font-size:.7rem;font-weight:700;}
+
+/* TABS */
+.tabr{display:flex;gap:.4rem;margin-bottom:1rem;border-bottom:1px solid var(--bdr);padding-bottom:0;}
+.tb{padding:8px 16px;border:none;background:none;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:.82rem;font-weight:700;color:rgba(255,255,255,.38);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .18s;}
+.tb.active{color:var(--gold);border-bottom-color:var(--gold);}
+.tc{display:none;}.tc.active{display:block;}
+
+/* RISK BAR */
+.rbar{height:7px;border-radius:4px;background:rgba(255,255,255,.07);overflow:hidden;margin-top:.3rem;}
+.rfill{height:100%;border-radius:4px;transition:width .5s;}
+
+/* TOAST */
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:rgba(15,15,28,.97);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 22px;font-weight:700;font-size:.88rem;z-index:2000;animation:tIn .28s ease-out;white-space:nowrap;}
+.toast.ok{border-color:rgba(0,255,136,.45);color:var(--green);}
+.toast.err{border-color:rgba(255,68,85,.45);color:var(--red);}
+@keyframes tIn{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+/* sdiv */
+.sdiv{height:1px;background:linear-gradient(to right,transparent,rgba(255,215,0,.12),transparent);margin:.9rem 0;}
+.lbl{font-size:.76rem;color:rgba(255,255,255,.35);}
+
+@media(max-width:1100px){.sg{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:768px){.sidebar{width:180px;}.sg{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginWrap">
+  <div class="lbox">
+    <div class="llogo">GoldRush</div>
+    <div class="lsub">Admin Panel</div>
+    <input class="linp" id="lu" type="text" placeholder="اسم المستخدم" autocomplete="off">
+    <input class="linp" id="lp" type="password" placeholder="كلمة المرور" onkeydown="if(event.key==='Enter')login()">
+    <div class="lerr" id="lerr"></div>
+    <button class="lbtn" onclick="login()">🔐 دخول</button>
+    <div style="margin-top:.8rem;font-size:.68rem;color:rgba(255,255,255,.18)">admin / admin123</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="tblogo">GoldRush — لوحة التحكم</div>
+    <div class="tbright">
+      <div class="live-dot">مباشر</div>
+      <div class="abadge">👑 Admin</div>
+      <button class="loutbtn" onclick="logout()">خروج</button>
+    </div>
+  </div>
+
+  <div class="body">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="ns">الرئيسية</div>
+      <div class="ni active" onclick="goP('dash',this)"><span class="ni-ico">📊</span>الإحصائيات</div>
+      <div class="ni" onclick="goP('players',this)"><span class="ni-ico">👥</span>اللاعبون</div>
+      <div class="ni" onclick="goP('requests',this)"><span class="ni-ico">💳</span>الطلبات <span id="req-badge" style="background:var(--red);color:white;font-size:.6rem;padding:1px 6px;border-radius:10px;margin-right:4px;display:none">0</span></div>
+      <div class="ni" onclick="goP('history',this)"><span class="ni-ico">📋</span>سجل الجولات</div>
+      <div class="ns">الألعاب</div>
+      <div class="ni" onclick="goP('roulette',this)"><span class="ni-ico">🎡</span>روليت</div>
+      <div class="ni" onclick="goP('rlive',this)"><span class="ni-ico">🔴</span>روليت لايف</div>
+      <div class="ni" onclick="goP('blackjack',this)"><span class="ni-ico">🃏</span>بلاك جاك</div>
+      <div class="ni" onclick="goP('dice',this)"><span class="ni-ico">🎲</span>ديس</div>
+      <div class="ni" onclick="goP('plinko',this)"><span class="ni-ico">🪙</span>بلينكو</div>
+      <div class="ni" onclick="goP('mines',this)"><span class="ni-ico">💣</span>ألغام</div>
+      <div class="ni" onclick="goP('crash',this)"><span class="ni-ico">📈</span>سلم الربح</div>
+      <div class="ns">التحكم</div>
+      <div class="ni" onclick="goP('rigged',this)"><span class="ni-ico">🎯</span>التحكم بالنتائج</div>
+      <div class="ni" onclick="goP('global',this)"><span class="ni-ico">⚙️</span>عام</div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+
+      <!-- ══ DASHBOARD ══ -->
+      <div class="pg active" id="pg-dash">
+        <div class="sg">
+          <div class="sc"><div class="sc-ico">💰</div><div class="sc-val" id="d-wager">0</div><div class="sc-lbl">إجمالي الرهانات</div></div>
+          <div class="sc" style="--acc:rgba(0,255,136,.04)"><div class="sc-ico">🏦</div><div class="sc-val" id="d-house">0</div><div class="sc-lbl">ربح الكازينو</div><div class="sc-ch up" id="d-hp">0%</div></div>
+          <div class="sc" style="--acc:rgba(0,170,255,.04)"><div class="sc-ico">🎮</div><div class="sc-val" id="d-rounds">0</div><div class="sc-lbl">إجمالي الجولات</div></div>
+          <div class="sc" style="--acc:rgba(255,68,85,.04)"><div class="sc-ico">💵</div><div class="sc-val" id="d-bal">—</div><div class="sc-lbl">رصيد اللاعب</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem">
+          <div class="section">
+            <div class="stitle"><span>🎮</span>حالة الألعاب</div>
+            <div id="gameStatList"></div>
+          </div>
+          <div class="section">
+            <div class="stitle"><span>📊</span>توزيع الجولات</div>
+            <div id="gameDist"></div>
+          </div>
+          <div class="section" style="grid-column:1/-1">
+            <div class="stitle"><span>📋</span>آخر الجولات</div>
+            <table class="dt"><thead><tr><th>اللعبة</th><th>رهان</th><th>نتيجة</th><th>ربح/خسارة</th></tr></thead>
+            <tbody id="recentRounds"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PLAYERS ══ -->
+      <div class="pg" id="pg-players">
+        <div class="section">
+          <div class="stitle"><span>👥</span>قائمة اللاعبين
+            <button class="btn btnsm" style="background:rgba(255,255,255,.05);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.1)" onclick="refPlayers()">🔄 تحديث</button>
+          </div>
+          <table class="dt">
+            <thead><tr><th>المستخدم</th><th>الرصيد</th><th>الحالة</th><th>تاريخ الإنشاء</th><th>إجراءات</th></tr></thead>
+            <tbody id="playersList"></tbody>
+          </table>
+        </div>
+        <div class="section" id="editPlayerPanel" style="display:none;border-color:rgba(255,215,0,.25)">
+          <div class="stitle"><span>✏️</span>تعديل: <span id="editPlayerName" style="color:var(--gold)">—</span></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:.8rem">
+            <div>
+              <div class="lbl" style="margin-bottom:.3rem">الرصيد الحالي</div>
+              <div style="font-size:1.5rem;font-weight:900;color:var(--gold);font-family:Rajdhani,sans-serif" id="editPlayerBal">0</div>
+            </div>
+            <div>
+              <div class="lbl" style="margin-bottom:.3rem">الحالة</div>
+              <div id="editPlayerStatus"></div>
+            </div>
+          </div>
+          <div class="lbl" style="margin-bottom:.3rem">الرصيد الجديد</div>
+          <input class="inp" id="newBalInp" type="number" placeholder="أدخل الرصيد الجديد">
+          <div class="brow">
+            <button class="btn btng" onclick="setPlayerBalNew()">✅ تعيين</button>
+            <button class="btn btnv" onclick="addPlayerBalNew(5000)">➕ 5,000</button>
+            <button class="btn btnv" onclick="addPlayerBalNew(10000)">➕ 10,000</button>
+            <button class="btn btnv" onclick="addPlayerBalNew(25000)">➕ 25,000</button>
+            <button class="btn btnv" onclick="addPlayerBalNew(50000)">➕ 50,000</button>
+            <button class="btn btnr" onclick="setPlayerBalNew(0)">🗑️ صفّر</button>
+          </div>
+          <div class="sdiv"></div>
+          <div class="brow">
+            <button class="btn btnr btnsm" id="toggleActiveBtn" onclick="togglePlayerActive()">⛔ إيقاف الحساب</button>
+            <button class="btn btnsm" style="background:rgba(255,255,255,.05);color:rgba(255,255,255,.4);border:1px solid rgba(255,255,255,.1)" onclick="document.getElementById('editPlayerPanel').style.display='none'">✖ إغلاق</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ REQUESTS ══ -->
+      <div class="pg" id="pg-requests">
+        <div class="section">
+          <div class="stitle"><span>💳</span>طلبات الإيداع والسحب
+            <button class="btn btnsm" style="background:rgba(255,255,255,.05);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.1)" onclick="refRequests()">🔄 تحديث</button>
+          </div>
+          <div class="tabr">
+            <button class="tb active" onclick="fltReq('all',this)">الكل</button>
+            <button class="tb" onclick="fltReq('pending',this)">⏳ بانتظار الموافقة</button>
+            <button class="tb" onclick="fltReq('approved',this)">✅ تمت الموافقة</button>
+            <button class="tb" onclick="fltReq('rejected',this)">❌ مرفوض</button>
+          </div>
+          <div id="requestsList"></div>
+        </div>
+      </div>
+
+      <!-- ══ HISTORY ══ -->
+      <div class="pg" id="pg-history">
+        <div class="section">
+          <div class="stitle"><span>📋</span>سجل الجولات<button class="btn btnr btnsm" onclick="clearH()">🗑️ مسح</button></div>
+          <div class="tabr">
+            <button class="tb active" onclick="fltH('all',this)">الكل</button>
+            <button class="tb" onclick="fltH('روليت',this)">روليت</button>
+            <button class="tb" onclick="fltH('روليت لايف',this)">روليت لايف</button>
+            <button class="tb" onclick="fltH('بلاك جاك',this)">بلاك جاك</button>
+            <button class="tb" onclick="fltH('ديس',this)">ديس</button>
+            <button class="tb" onclick="fltH('بلينكو',this)">بلينكو</button>
+            <button class="tb" onclick="fltH('ألغام',this)">ألغام</button>
+            <button class="tb" onclick="fltH('سلم الربح',this)">سلم الربح</button>
+          </div>
+          <table class="dt"><thead><tr><th>#</th><th>اللعبة</th><th>رهان</th><th>نتيجة</th><th>ربح/خسارة</th></tr></thead>
+          <tbody id="fullHist"></tbody></table>
+        </div>
+      </div>
+
+      <!-- ══ ROULETTE ══ -->
+      <div class="pg" id="pg-roulette">
+        <div class="section">
+          <div class="stitle"><span>🎡</span>إعدادات الروليت<span id="rb-roulette" class="badge bon">مفعّل</span></div>
+          <div class="trow">
+            <div class="tinfo"><div class="tn">🎡 تفعيل الروليت</div><div class="td">تفعيل أو تعطيل اللعبة</div></div>
+            <label class="tgl"><input type="checkbox" id="tg-roulette" checked onchange="togGame('roulette',this)"><span class="tsl"></span></label>
+          </div>
+          <div class="sdiv"></div>
+          <div class="cr">
+            <div class="cl"><span class="cn">House Edge %</span><span class="cv" id="v-r-edge">2.7%</span></div>
+            <input type="range" class="csl" min="0" max="15" step="0.1" value="2.7" oninput="updV('r-edge',this.value+'%')">
+            <div class="ch">الروليت الأوروبي الحقيقي = 2.7%</div>
+          </div>
+          <div class="cr">
+            <div class="cl"><span class="cn">الحد الأقصى للرهان</span><span class="cv" id="v-r-max">5,000</span></div>
+            <input type="range" class="csl" min="100" max="100000" step="100" value="5000" oninput="updV('r-max',Number(this.value).toLocaleString('ar'))">
+          </div>
+          <div class="cr">
+            <div class="cl"><span class="cn">سرعة الدوران</span><span class="cv" id="v-r-spd">متوسطة</span></div>
+            <input type="range" class="csl" min="1" max="3" step="1" value="2" oninput="updV('r-spd',['','بطيئة','متوسطة','سريعة'][this.value])">
+          </div>
+          <div class="brow">
+            <button class="btn btng" onclick="saveGame('رولی')">💾 حفظ</button>
+            <button class="btn btnr" onclick="toast('🔄 تمت إعادة الضبط','ok')">🔄 إعادة الضبط</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ BLACKJACK ══ -->
+      <div class="pg" id="pg-blackjack">
+        <div class="section">
+          <div class="stitle"><span>🃏</span>إعدادات بلاك جاك<span id="rb-blackjack" class="badge bon">مفعّل</span></div>
+          <div class="trow">
+            <div class="tinfo"><div class="tn">🃏 تفعيل بلاك جاك</div><div class="td">تفعيل أو تعطيل اللعبة</div></div>
+            <label class="tgl"><input type="checkbox" id="tg-blackjack" checked onchange="togGame('blackjack',this)"><span class="tsl"></span></label>
+          </div>
+          <div class="sdiv"></div>
+          <div class="cr">
+            <div class="cl"><span class="cn">عدد الأوراق في الحذافة</span><span class="cv" id="v-bj-d">1 حذافة</span></div>
+            <input type="range" class="csl" min="1" max="8" step="1" value="1" oninput="updV('bj-d',this.value+' حذافة')">
+          </div>
+          <div class="cr">
+            <div class="cl"><span class="cn">الحد الأقصى للرهان</span><span class="cv" id="v-bj-max">10,000</span></div>
+            <input type="range" class="csl" min="100" max="200000" step="100" value="10000" oninput="updV('bj-max',Number(this.value).toLocaleString('ar'))">
+          </div>
+          <div class="trow">
+            <div class="tinfo"><div class="tn">السماح بالمضاعفة</div><div class="td">تعطيلها يمنع زر Double</div></div>
+            <label class="tgl"><input type="checkbox" checked><span class="tsl"></span></label>
+          </div>
+          <div class="trow">
+            <div class="tinfo"><div class="tn">بلاك جاك يدفع 3:2</div><div class="td">تعطيله يجعله 1:1</div></div>
+            <label class="tgl"><input type="checkbox" checked><span class="tsl"></span></label>
+          </div>
+          <div class="brow"><button class="btn btng" onclick="saveGame('بلاك جاك')">💾 حفظ</button></div>
+        </div>
+      </div>
+
+      <!-- ══ DICE ══ -->
+      <div class="pg" id="pg-dice">
+        <div class="section">
+          <div class="stitle"><span>🎲</span>إعدادات الديس<span id="rb-dice" class="badge bon">مفعّل</span></div>
+          <div class="trow">
+            <div class="tinfo"><div class="tn">🎲 تفعيل الديس</div><div class="td">تفعيل أو تعطيل اللعبة</div></div>
+            <label class="tgl"><input type="checkbox" id="tg-dice" checked onchange="togGame('dice',this)"><span class="tsl"></span></label>
+          </div>
+          <div class="sdiv"></div>
+          <div class="cr">
+            <div class="cl"><span class="cn">House Edge %</span><span class="cv" id="v-d-edge">1%</span></div>
+            <input type="range" class="csl" min="0" max="10" step="0.5" value="1" oninput="updV('d-edge',this.value+'%');updDiceA()">
+            <div class="ch">يؤثر على المضاعف: مضاعف = (100 - edge%) / threshold</div>
+          </div>
+          <div class="cr">
+            <div class="cl"><span class="cn">الحد الأقصى للرهان</span><span class="cv" id="v-d-max">5,000</span></div>
+            <input type="range" class="csl" min="100" max="100000" step="100" value="5000" oninput="updV('d-max',Number(this.value).toLocaleString('ar'))">
+          </div>
+          <div class="section" style="background:rgba(0,0,0,.2);margin-top:.5rem">
+            <div class="stitle" style="font-size:.82rem">جدول المضاعفات المحدّث</div>
+            <table class="dt" id="diceMultTable"></table>
+          </div>
+          <div class="brow"><button class="btn btng" onclick="saveGame('ديس')">💾 حفظ</button></div>
+        </div>
+      </div>
+
+      <!-- ══ PLINKO ══ -->
+      <div class="pg" id="pg-plinko">
+        <div class="section">
+          <div class="stitle"><span>🪙</span>إعدادات البلينكو<span id="rb-plinko" class="badge bon">مفعّل</span></div>
+          <div class="trow">
+            <div class="tinfo"><div class="tn">🪙 تفعيل البلينكو</div><div class="td">تفعيل أو تعطيل اللعبة</div></div>
+            <label class="tgl"><input type="checkbox" id="tg-plinko" checked onchange="togGame('plinko',this)"><span class="tsl"></span></label>
+          </div>
+          <div class="sdiv"></div>
+          <div class="tabr">
+            <button class="tb active" onclick="swPTab('low',this)">🟢 منخفض</button>
+            <button class="tb" onclick="swPTab('med',this)">🟡 متوسط</button>
+            <button class="tb" onclick="swPTab('high',this)">🔴 عالي</button>
+          </div>
+          <div class="tc active" id="ptc-low">
+            <div class="lbl" style="margin-bottom:.5rem">11 حزمة — عدّل المضاعفات مباشرة</div>
+            <div class="mg" id="pme-low"></div>
+            <div class="brow">
+              <button class="btn btng btnsm" onclick="savePM('low')">💾 حفظ</button>
+              <button class="btn btnr btnsm" onclick="resetPM('low')">🔄 إعادة الضبط</button>
+            </div>
+          </div>
+          <div class="tc" id="ptc-med">
+            <div class="lbl" style="margin-bottom:.5rem">11 حزمة — عدّل المضاعفات مباشرة</div>
+            <div class="mg" id="pme-med"></div>
+            <div class="brow">
+              <button class="btn btng btnsm" onclick="savePM('med')">💾 حفظ</button>
+              <button class="btn btnr btnsm" onclick="resetPM('med')">🔄 إعادة الضبط</button>
+            </div>
+          </div>
+          <div class="tc" id="ptc-high">
+            <div class="lbl" style="margin-bottom:.5rem">11 حزمة — عدّل المضاعفات مباشرة</div>
+            <div class="mg" id="pme-high"></div>
+            <div class="brow">
+              <button class="btn btng btnsm" onclick="savePM('high')">💾 حفظ</button>
+              <button class="btn btnr btnsm" onclick="resetPM('high')">🔄 إعادة الضبط</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ MINES ══ -->
+      <div class="pg" id="pg-mines">
+        <div class="section">
+          <div class="stitle"><span>💣</span>إعدادات الألغام<span id="rb-mines" class="badge bon">مفعّل</span></div>
+          <div class="trow">
+            <div class="tinfo"><div class="tn">💣 تفعيل الألغام</div><div class="td">تفعيل أو تعطيل اللعبة</div></div>
+            <label class="tgl"><input type="checkbox" id="tg-mines" checked onchange="togGame('mines',this)"><span class="tsl"></span></label>
+          </div>
+          <div class="sdiv"></div>
+          <div class="cr">
+            <div class="cl"><span class="cn">House Edge %</span><span class="cv" id="v-m-edge">3%</span></div>
+            <input type="range" class="csl" min="0" max="20" step="0.5" value="3" oninput="updV('m-edge',this.value+'%');sendMinesEdge(this.value);updMinesTable()">
+            <div class="ch">يؤثر على مضاعف كل خلية آمنة</div>
+          </div>
+          <div class="cr">
+            <div class="cl"><span class="cn">الحد الأقصى للرهان</span><span class="cv" id="v-m-max">5,000</span></div>
+            <input type="range" class="csl" min="100" max="100000" step="100" value="5000" oninput="updV('m-max',Number(this.value).toLocaleString('ar'))">
+          </div>
+        </div>
+        <div class="section">
+          <div class="stitle"><span>📊</span>جدول المضاعفات</div>
+          <table class="dt" id="minesMultTable"></table>
+        </div>
+      </div>
+
+      <!-- ══ RLIVE ══ -->
+      <div class="pg" id="pg-rlive">
+        <div class="section">
+          <div class="stitle"><span>🔴</span>إعدادات روليت لايف<span id="rb-rlive" class="badge bon">مفعّل</span></div>
+          <div class="trow">
+            <div class="tinfo"><div class="tn">🔴 تفعيل روليت لايف</div><div class="td">تفعيل أو تعطيل اللعبة</div></div>
+            <label class="tgl"><input type="checkbox" id="tg-rlive" checked onchange="togGame('rlive',this)"><span class="tsl"></span></label>
+          </div>
+          <div class="sdiv"></div>
+          <div class="cr">
+            <div class="cl"><span class="cn">House Edge %</span><span class="cv" id="v-rl-edge">2.7%</span></div>
+            <input type="range" class="csl" min="0" max="15" step="0.1" value="2.7" oninput="updV('rl-edge',this.value+'%')">
+            <div class="ch">روليت أوروبي = 2.7%</div>
+          </div>
+          <div class="cr">
+            <div class="cl"><span class="cn">الحد الأقصى للرهان</span><span class="cv" id="v-rl-max">10,000</span></div>
+            <input type="range" class="csl" min="100" max="200000" step="100" value="10000" oninput="updV('rl-max',Number(this.value).toLocaleString('ar'))">
+          </div>
+          <div class="cr">
+            <div class="cl"><span class="cn">مدة جولة البث (ثوانٍ)</span><span class="cv" id="v-rl-dur">30 ث</span></div>
+            <input type="range" class="csl" min="10" max="120" step="5" value="30" oninput="updV('rl-dur',this.value+' ث')">
+          </div>
+          <div class="trow">
+            <div class="tinfo"><div class="tn">إظهار تاريخ الأرقام السابقة</div><div class="td">يعرض آخر 20 نتيجة للاعبين</div></div>
+            <label class="tgl"><input type="checkbox" checked><span class="tsl"></span></label>
+          </div>
+          <div class="trow">
+            <div class="tinfo"><div class="tn">إظهار الإحصائيات (حار/بارد)</div><div class="td">يعرض أكثر الأرقام تكراراً</div></div>
+            <label class="tgl"><input type="checkbox" checked><span class="tsl"></span></label>
+          </div>
+          <div class="brow">
+            <button class="btn btng" onclick="saveGame('روليت لايف')">💾 حفظ</button>
+            <button class="btn btnr" onclick="toast('🔄 تمت إعادة الضبط','ok')">🔄 إعادة الضبط</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ CRASH ══ -->
+      <div class="pg" id="pg-crash">
+        <div class="section">
+          <div class="stitle"><span>📈</span>إعدادات سلم الربح<span id="rb-crash" class="badge bon">مفعّل</span></div>
+          <div class="trow">
+            <div class="tinfo"><div class="tn">📈 تفعيل سلم الربح</div><div class="td">تفعيل أو تعطيل اللعبة</div></div>
+            <label class="tgl"><input type="checkbox" id="tg-crash" checked onchange="togGame('crash',this)"><span class="tsl"></span></label>
+          </div>
+          <div class="sdiv"></div>
+          <div class="cr">
+            <div class="cl"><span class="cn">House Edge %</span><span class="cv" id="v-cr-edge">4%</span></div>
+            <input type="range" class="csl" min="0" max="20" step="0.5" value="4" oninput="(async()=>{ updV('cr-edge',this.value+'%');await sendAdmin({crash_edge:parseFloat(this.value)/100}) })()">
+            <div class="ch">يؤثر على احتمال التوقف المبكر</div>
+          </div>
+          <div class="cr">
+            <div class="cl"><span class="cn">الحد الأقصى للمضاعف</span><span class="cv" id="v-cr-maxm">100x</span></div>
+            <input type="range" class="csl" min="10" max="1000" step="10" value="100" oninput="(async()=>{ updV('cr-maxm',this.value+'x');await sendAdmin({crash_max_mult:parseFloat(this.value)}) })()">
+            <div class="ch">أقصى مضاعف قبل الانهيار التلقائي</div>
+          </div>
+          <div class="cr">
+            <div class="cl"><span class="cn">وقت الانتظار بين الجولات (ثوانٍ)</span><span class="cv" id="v-cr-wait">5 ث</span></div>
+            <input type="range" class="csl" min="3" max="30" step="1" value="5" oninput="(async()=>{ updV('cr-wait',this.value+' ث');await sendAdmin({crash_wait:parseInt(this.value)}) })()">
+          </div>
+          <div class="cr">
+            <div class="cl"><span class="cn">الحد الأقصى للرهان</span><span class="cv" id="v-cr-max">10,000</span></div>
+            <input type="range" class="csl" min="100" max="200000" step="100" value="10000" oninput="(async()=>{ updV('cr-max',Number(this.value).toLocaleString('ar'));await sendAdmin({crash_max_bet:parseInt(this.value)}) })()">
+          </div>
+          <div class="trow">
+            <div class="tinfo"><div class="tn">السحب التلقائي</div><div class="td">السماح للاعبين بتحديد مضاعف سحب تلقائي</div></div>
+            <label class="tgl"><input type="checkbox" checked onchange="(async()=>{ await sendAdmin({crash_auto_cashout:this.checked}) })()"><span class="tsl"></span></label>
+          </div>
+        </div>
+        <div class="section" style="border-color:rgba(255,68,85,.18)">
+          <div class="stitle"><span>🎯</span>التحكم بنقطة الانهيار<span class="brig">⚠️ تجريبي</span></div>
+          <div style="background:rgba(255,68,85,.05);border:1px solid rgba(255,68,85,.12);border-radius:9px;padding:.9rem;margin-bottom:1rem;font-size:.8rem;color:rgba(255,255,255,.45)">
+            ⚠️ تحديد نقطة الانهيار للجولة القادمة — اتركه فارغاً للعشوائي الطبيعي.
+          </div>
+          <input class="inp" id="rig-cr" type="number" min="1.01" max="1000" step="0.01" placeholder="مثال: 1.50 — فارغ = عشوائي">
+          <div class="brow">
+            <button class="btn btnr btnsm" onclick="setRig('crash','rig-cr','rig-cr-st')">🎯 تطبيق</button>
+            <button class="btn btnsm" style="background:rgba(255,255,255,.05);color:rgba(255,255,255,.4)" onclick="clrRig('crash','rig-cr-st')">✖ إلغاء</button>
+            <span id="rig-cr-st" style="font-size:.75rem;color:var(--red);align-self:center;margin-right:.5rem"></span>
+          </div>
+          <div class="sdiv"></div>
+          <div style="font-weight:700;font-size:.85rem;margin-bottom:.6rem">📊 آخر نتائج سلم الربح</div>
+          <div id="crashHistAdmin" style="display:flex;flex-wrap:wrap;gap:.4rem"></div>
+          <div class="brow"><button class="btn btnsm" style="background:rgba(255,255,255,.05);color:rgba(255,255,255,.4);border:1px solid rgba(255,255,255,.1)" onclick="loadCrashHist()">🔄 تحديث</button></div>
+        </div>
+      </div>
+
+      <!-- ══ RIGGED ══ -->
+      <div class="pg" id="pg-rigged">
+        <div class="section" style="border-color:rgba(255,68,85,.18)">
+          <div class="stitle"><span>🎯</span>التحكم بالنتائج<span class="brig">⚠️ تجريبي</span></div>
+          <div style="background:rgba(255,68,85,.05);border:1px solid rgba(255,68,85,.12);border-radius:9px;padding:.9rem;margin-bottom:1rem;font-size:.8rem;color:rgba(255,255,255,.45)">
+            ⚠️ يتيح لك تحديد نتيجة الجولة القادمة — يؤثر مباشرة على موقع الكازينو في نفس المتصفح.
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+
+            <div style="background:rgba(0,0,0,.25);border-radius:11px;padding:1rem">
+              <div style="font-weight:700;margin-bottom:.7rem;display:flex;align-items:center;justify-content:space-between">
+                🎡 روليت <span id="rig-r-st" style="font-size:.7rem;color:var(--red)"></span>
+              </div>
+              <input class="inp" id="rig-r" type="number" min="0" max="36" placeholder="رقم (0–36) — فارغ = عشوائي">
+              <div class="brow">
+                <button class="btn btnr btnsm" onclick="setRig('roulette','rig-r','rig-r-st')">🎯 تطبيق</button>
+                <button class="btn btnsm" style="background:rgba(255,255,255,.05);color:rgba(255,255,255,.4)" onclick="clrRig('roulette','rig-r-st')">✖ إلغاء</button>
+              </div>
+            </div>
+
+            <div style="background:rgba(0,0,0,.25);border-radius:11px;padding:1rem">
+              <div style="font-weight:700;margin-bottom:.7rem;display:flex;align-items:center;justify-content:space-between">
+                🎲 ديس <span id="rig-d-st" style="font-size:.7rem;color:var(--red)"></span>
+              </div>
+              <input class="inp" id="rig-d" type="number" min="0" max="99" placeholder="نتيجة (0–99) — فارغ = عشوائي">
+              <div class="brow">
+                <button class="btn btnr btnsm" onclick="setRig('dice','rig-d','rig-d-st')">🎯 تطبيق</button>
+                <button class="btn btnsm" style="background:rgba(255,255,255,.05);color:rgba(255,255,255,.4)" onclick="clrRig('dice','rig-d-st')">✖ إلغاء</button>
+              </div>
+            </div>
+
+            <div style="background:rgba(0,0,0,.25);border-radius:11px;padding:1rem">
+              <div style="font-weight:700;margin-bottom:.7rem;display:flex;align-items:center;justify-content:space-between">
+                💣 ألغام <span id="rig-m-st" style="font-size:.7rem;color:var(--red)"></span>
+              </div>
+              <select class="inp" id="rig-m">
+                <option value="">عشوائي (طبيعي)</option>
+                <option value="safe">🍎 الخلية الأولى آمنة دائماً</option>
+                <option value="mine">💣 الخلية الأولى لغم دائماً</option>
+              </select>
+              <div class="brow">
+                <button class="btn btnr btnsm" onclick="setRig('mines','rig-m','rig-m-st')">🎯 تطبيق</button>
+                <button class="btn btnsm" style="background:rgba(255,255,255,.05);color:rgba(255,255,255,.4)" onclick="clrRig('mines','rig-m-st')">✖ إلغاء</button>
+              </div>
+            </div>
+
+            <div style="background:rgba(0,0,0,.25);border-radius:11px;padding:1rem">
+              <div style="font-weight:700;margin-bottom:.7rem;display:flex;align-items:center;justify-content:space-between">
+                🪙 بلينكو <span id="rig-p-st" style="font-size:.7rem;color:var(--red)"></span>
+              </div>
+              <input class="inp" id="rig-p" type="number" min="0" max="10" placeholder="حزمة (0–10) — فارغ = عشوائي">
+              <div class="brow">
+                <button class="btn btnr btnsm" onclick="setRig('plinko','rig-p','rig-p-st')">🎯 تطبيق</button>
+                <button class="btn btnsm" style="background:rgba(255,255,255,.05);color:rgba(255,255,255,.4)" onclick="clrRig('plinko','rig-p-st')">✖ إلغاء</button>
+              </div>
+            </div>
+
+            <div style="background:rgba(0,0,0,.25);border-radius:11px;padding:1rem">
+              <div style="font-weight:700;margin-bottom:.7rem;display:flex;align-items:center;justify-content:space-between">
+                🔴 روليت لايف <span id="rig-rl-st" style="font-size:.7rem;color:var(--red)"></span>
+              </div>
+              <input class="inp" id="rig-rl" type="number" min="0" max="36" placeholder="رقم (0–36) — فارغ = عشوائي">
+              <div class="brow">
+                <button class="btn btnr btnsm" onclick="setRig('rlive','rig-rl','rig-rl-st')">🎯 تطبيق</button>
+                <button class="btn btnsm" style="background:rgba(255,255,255,.05);color:rgba(255,255,255,.4)" onclick="clrRig('rlive','rig-rl-st')">✖ إلغاء</button>
+              </div>
+            </div>
+
+            <div style="background:rgba(0,0,0,.25);border-radius:11px;padding:1rem">
+              <div style="font-weight:700;margin-bottom:.7rem;display:flex;align-items:center;justify-content:space-between">
+                📈 سلم الربح <span id="rig-cr2-st" style="font-size:.7rem;color:var(--red)"></span>
+              </div>
+              <input class="inp" id="rig-cr2" type="number" min="1.01" max="1000" step="0.01" placeholder="نقطة الانهيار (1.01+) — فارغ = عشوائي">
+              <div class="brow">
+                <button class="btn btnr btnsm" onclick="setRig('crash','rig-cr2','rig-cr2-st')">🎯 تطبيق</button>
+                <button class="btn btnsm" style="background:rgba(255,255,255,.05);color:rgba(255,255,255,.4)" onclick="clrRig('crash','rig-cr2-st')">✖ إلغاء</button>
+              </div>
+            </div>
+
+          </div>
+          <div class="sdiv"></div>
+          <div style="font-weight:700;margin-bottom:.6rem">📋 الحالة الحالية</div>
+          <div id="rigAll" style="display:flex;flex-wrap:wrap;gap:.5rem;font-size:.78rem"></div>
+        </div>
+      </div>
+
+      <!-- ══ GLOBAL ══ -->
+      <div class="pg" id="pg-global">
+        <div class="section">
+          <div class="stitle"><span>⚙️</span>الإعدادات العامة</div>
+          <div class="cr">
+            <div class="cl"><span class="cn">رصيد البداية للاعب</span><span class="cv" id="v-g-sb">10,000</span></div>
+            <input type="range" class="csl" min="1000" max="200000" step="1000" value="10000" oninput="updV('g-sb',Number(this.value).toLocaleString('ar'))">
+          </div>
+          <div class="cr">
+            <div class="cl"><span class="cn">الحد الأدنى للرهان</span><span class="cv" id="v-g-min">1</span></div>
+            <input type="range" class="csl" min="1" max="500" step="1" value="1" oninput="updV('g-min',this.value)">
+          </div>
+          <div class="trow">
+            <div class="tinfo"><div class="tn">🔧 وضع الصيانة</div><div class="td">يوقف جميع الألعاب ويعرض رسالة</div></div>
+            <label class="tgl"><input type="checkbox" id="tg-maint" onchange="togMaint(this)"><span class="tsl"></span></label>
+          </div>
+          <div class="trow">
+            <div class="tinfo"><div class="tn">📊 إظهار المتصدرين</div><div class="td">جدول المتصدرين في اللوبي</div></div>
+            <label class="tgl"><input type="checkbox" checked><span class="tsl"></span></label>
+          </div>
+          <div class="brow">
+            <button class="btn btng" onclick="saveGame('الإعدادات العامة')">💾 حفظ الكل</button>
+            <button class="btn btnr" onclick="(async()=>{ if(confirm('إعادة ضبط كل شيء؟')){await sendAdmin({});toast('✅ تمت إعادة الضبط','ok');} })()">⚠️ إعادة ضبط الكل</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /main -->
+  </div><!-- /body -->
+</div><!-- /app -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPA_URL='https://jmrepxssuklntdzzprdf.supabase.co';
+const SUPA_KEY='sb_publishable_8vvBhc94EOPVXPoqs5HsaA_tkZNRq54';
+const _sb=supabase.createClient(SUPA_URL,SUPA_KEY);
+/* ════ AUTH ════ */
+function login(){
+  const u=document.getElementById('lu').value.trim(),p=document.getElementById('lp').value.trim();
+  if(u==='admin'&&p==='admin123'){
+    document.getElementById('loginWrap').style.display='none';
+    document.getElementById('app').classList.add('show');
+    initAdmin();
+  } else {
+    document.getElementById('lerr').textContent='❌ بيانات خاطئة';
+    setTimeout(()=>document.getElementById('lerr').textContent='',2500);
+  }
+}
+function logout(){
+  document.getElementById('app').classList.remove('show');
+  document.getElementById('loginWrap').style.display='flex';
+  document.getElementById('lu').value='';document.getElementById('lp').value='';
+}
+document.getElementById('lp').addEventListener('keydown',e=>{if(e.key==='Enter')login();});
+
+/* ════ NAV ════ */
+function goP(id,el){
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+  document.getElementById('pg-'+id).classList.add('active');
+  el.classList.add('active');
+  if(id==='dash')refDash();
+  if(id==='players')refPlayers();
+  if(id==='requests')refRequests();
+  if(id==='history')refHistory('all');
+  if(id==='mines')updMinesTable();
+  if(id==='dice')updDiceTable();
+  if(id==='rigged')refRig();
+  if(id==='crash')loadCrashHist();
+}
+
+/* ════ SUPABASE HELPERS ════ */
+async function getAdmin(){const{data}=await _sb.from('admin').select('*').eq('id','settings');return(data&&data[0])||{};}
+async function sendAdmin(obj){const cur=await getAdmin();await _sb.from('admin').upsert({id:'settings',...cur,...obj},{onConflict:'id'});}
+function getCasino(){return null;}
+function getHistory(){return[];}
+async function getPlayers(){const{data}=await _sb.from('players').select('*');return data||[];}
+async function savePlayers(arr){for(const p of arr)await _sb.from('players').update({bal:p.bal,active:p.active}).eq('username',p.username);}
+async function getRequests(){const{data}=await _sb.from('requests').select('*');return data||[];}
+async function saveRequests(arr){for(const r of arr)await _sb.from('requests').update({status:r.status,rejectReason:r.rejectReason||null}).eq('id',r.id);}
+
+/* ════ GAME TOGGLE ════ */
+async function togGame(g,el){
+  await sendAdmin({['dis_'+g]:!el.checked});
+  const b=document.getElementById('rb-'+g);
+  if(b){b.textContent=el.checked?'مفعّل':'معطّل';b.className='badge '+(el.checked?'bon':'boff');}
+  toast((el.checked?'✅ تم تفعيل ':'❌ تم تعطيل ')+g,el.checked?'ok':'err');
+}
+async function togMaint(el){await sendAdmin({maintenance:el.checked});toast(el.checked?'🔧 وضع الصيانة مفعّل':'✅ وضع الصيانة معطّل',el.checked?'err':'ok');}
+
+/* ════ PLAYERS ════ */
+let selPlayer=null;
+
+async function refPlayers(){
+  const players=await getPlayers();
+  const el=document.getElementById('playersList');
+  if(!players.length){
+    el.innerHTML='<tr><td colspan="5" style="text-align:center;color:rgba(255,255,255,.28);padding:1.5rem">لا يوجد لاعبون مسجلون بعد</td></tr>';
+    return;
+  }
+  el.innerHTML=players.map(p=>`
+    <tr>
+      <td style="font-weight:700;font-family:monospace">${p.username}</td>
+      <td style="color:var(--gold);font-weight:700">${fmt(p.bal||0)}</td>
+      <td><span class="badge ${p.active!==false?'bon':'boff'}">${p.active!==false?'نشط':'موقوف'}</span></td>
+      <td style="color:rgba(255,255,255,.35)">${p.created||'—'}</td>
+      <td><button class="btn btng btnsm" onclick="openEditPlayer('${p.username}')">✏️ تعديل</button></td>
+    </tr>`).join('');
+}
+
+async function openEditPlayer(username){
+  const players=await getPlayers();
+  selPlayer=players.find(p=>p.username===username);
+  if(!selPlayer)return;
+  document.getElementById('editPlayerPanel').style.display='block';
+  document.getElementById('editPlayerName').textContent=username;
+  document.getElementById('editPlayerBal').textContent=fmt(selPlayer.bal||0);
+  document.getElementById('editPlayerStatus').innerHTML=`<span class="badge ${selPlayer.active!==false?'bon':'boff'}">${selPlayer.active!==false?'نشط':'موقوف'}</span>`;
+  const btn=document.getElementById('toggleActiveBtn');
+  btn.textContent=selPlayer.active!==false?'⛔ إيقاف الحساب':'✅ تفعيل الحساب';
+  btn.className='btn btnsm '+(selPlayer.active!==false?'btnr':'btnv');
+  document.getElementById('newBalInp').value='';
+  document.getElementById('editPlayerPanel').scrollIntoView({behavior:'smooth'});
+}
+
+async function setPlayerBalNew(forcedVal){
+  if(!selPlayer)return toast('اختر لاعباً أولاً','err');
+  const v=forcedVal!==undefined?forcedVal:parseFloat(document.getElementById('newBalInp').value);
+  if(isNaN(v)||v<0)return toast('أدخل رقماً صحيحاً','err');
+  const players=await getPlayers();
+  const idx=players.findIndex(p=>p.username===selPlayer.username);
+  if(idx<0)return toast('اللاعب غير موجود','err');
+  // تحديث مباشر في Supabase
+  const{error}=await _sb.from('players').update({bal:v}).eq('username',selPlayer.username);
+  if(error)return toast('❌ فشل التحديث: '+error.message,'err');
+  selPlayer.bal=v;
+  document.getElementById('editPlayerBal').textContent=fmt(v);
+  // إشعار اللاعب فوراً إذا كان أونلاين
+  await sendAdmin({force_bal:true,new_bal:v,force_user:selPlayer.username});
+  toast('✅ تم تعيين رصيد '+selPlayer.username+' إلى '+fmt(v),'ok');
+  refPlayers();
+}
+
+async function addPlayerBalNew(amt){
+  if(!selPlayer)return toast('اختر لاعباً أولاً','err');
+  const players=await getPlayers();
+  const p=players.find(p=>p.username===selPlayer.username);
+  if(!p)return;
+  setPlayerBalNew((p.bal||0)+amt);
+}
+
+async function togglePlayerActive(){
+  if(!selPlayer)return;
+  const players=await getPlayers();
+  const idx=players.findIndex(p=>p.username===selPlayer.username);
+  if(idx<0)return;
+  const newActive=players[idx].active===false?true:false;
+  await _sb.from('players').update({active:newActive}).eq('username',selPlayer.username);
+  selPlayer.active=newActive;
+  openEditPlayer(selPlayer.username);
+  refPlayers();
+  toast((players[idx].active?'✅ تم تفعيل ':'⛔ تم إيقاف ')+selPlayer.username,'ok');
+}
+
+/* ════ REQUESTS ════ */
+let reqFlt='all';
+function fltReq(f,el){
+  reqFlt=f;
+  document.querySelectorAll('#pg-requests .tb').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  refRequests();
+}
+
+async function refRequests(){
+  const reqs=await getRequests();
+  const filtered=reqFlt==='all'?reqs:reqs.filter(r=>r.status===reqFlt);
+  const pending=reqs.filter(r=>r.status==='pending').length;
+  const badge=document.getElementById('req-badge');
+  if(pending>0){badge.style.display='inline';badge.textContent=pending;}
+  else{badge.style.display='none';}
+  const el=document.getElementById('requestsList');
+  if(!filtered.length){
+    el.innerHTML='<div style="text-align:center;color:rgba(255,255,255,.28);padding:2rem">لا يوجد طلبات</div>';
+    return;
+  }
+  el.innerHTML=filtered.slice().reverse().map(r=>`
+    <div style="background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.06);border-radius:11px;padding:1rem;margin-bottom:.7rem">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.6rem">
+        <div>
+          <div style="font-weight:700;font-size:.92rem">${r.type==='deposit'?'💳 إيداع':'💸 سحب'} — ${fmt(r.amount)} د.ع</div>
+          <div style="font-size:.75rem;color:rgba(255,255,255,.38);margin-top:2px">👤 ${r.username||r.user} · ${r.method} · ${r.date}</div>
+          ${r.ref?`<div style="font-size:.75rem;color:rgba(255,255,255,.35)">وصل: ${r.ref}</div>`:''}
+          ${r.account?`<div style="font-size:.75rem;color:rgba(255,255,255,.35)">حساب الاستلام: ${r.account}</div>`:''}
+          ${r.rejectReason?`<div style="font-size:.75rem;color:var(--red);margin-top:3px">سبب الرفض: ${r.rejectReason}</div>`:''}
+        </div>
+        <span style="padding:3px 10px;border-radius:16px;font-size:.7rem;font-weight:700;${r.status==='pending'?'background:rgba(255,165,0,.15);color:#FFA500':r.status==='approved'?'background:rgba(0,255,136,.12);color:var(--green)':'background:rgba(255,68,85,.12);color:var(--red)'}">${r.status==='pending'?'⏳ بانتظار':r.status==='approved'?'✅ تمت الموافقة':'❌ مرفوض'}</span>
+      </div>
+      ${r.status==='pending'?`
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+          <button class="btn btnv btnsm" onclick="approveReq('${r.id}')">✅ موافقة</button>
+          <div style="display:flex;gap:.4rem;flex:1">
+            <input class="inp" id="rr-${r.id}" type="text" placeholder="سبب الرفض (اختياري)" style="margin-bottom:0;flex:1;padding:7px 10px;font-size:.8rem">
+            <button class="btn btnr btnsm" onclick="rejectReq('${r.id}')">❌ رفض</button>
+          </div>
+        </div>`:''}
+    </div>`).join('');
+}
+
+async function approveReq(id){
+  const reqs=await getRequests();
+  const idx=reqs.findIndex(r=>r.id===id);
+  if(idx<0)return;
+  const req=reqs[idx];
+  reqs[idx].status='approved';
+  await saveRequests(reqs);
+  // If deposit, add balance to player
+  if(req.type==='deposit'){
+    const players=await getPlayers();
+    const pi=players.findIndex(p=>p.username===(req.username||req.user));
+    if(pi>=0){
+      // المبلغ بالدينار يُضاف مباشرة كنقاط لعب (1 دينار = 1 نقطة)
+      const addAmt=Math.floor(req.amount);
+      const newBal=(players[pi].bal||0)+addAmt;
+      await _sb.from('players').update({bal:newBal}).eq('username',req.username||req.user);
+      await sendAdmin({force_bal:true,new_bal:newBal,force_user:req.username||req.user});
+      toast('✅ تمت الموافقة — أضيف '+fmt(addAmt)+' للاعب '+(req.username||req.user),'ok');
+    } else {
+      toast('⚠️ تمت الموافقة لكن اللاعب '+(req.username||req.user)+' غير موجود في القاعدة','err');
+    }
+  } else {
+    toast('✅ تمت الموافقة على طلب السحب','ok');
+  }
+  refRequests();
+}
+
+async function rejectReq(id){
+  const reqs=await getRequests();
+  const idx=reqs.findIndex(r=>r.id===id);
+  if(idx<0)return;
+  const reason=document.getElementById('rr-'+id)?.value||'';
+  reqs[idx].status='rejected';
+  if(reason)reqs[idx].rejectReason=reason;
+  await saveRequests(reqs);
+  toast('❌ تم رفض الطلب','err');
+  refRequests();
+}
+
+/* ════ OLD COMPAT (kept for non-player mode) ════ */
+async function setPlayerBal(){
+  const v=parseFloat(document.getElementById('newBal')?.value);
+  if(isNaN(v)||v<0)return toast('أدخل رقماً صحيحاً','err');
+  setBalDirect(v);
+}
+async function addPlayerBal(amt){
+  const d=getCasino();const cur=d?d.bal:10000;
+  setBalDirect(cur+amt);
+}
+async function setBalDirect(v){
+  await sendAdmin({force_bal:true,new_bal:v});
+  toast('✅ تم تعيين الرصيد إلى '+fmt(v),'ok');
+}
+
+/* ════ RIGGED ════ */
+async function setRig(game,inputId,statusId){
+  const v=document.getElementById(inputId).value;
+  await sendAdmin({['rig_'+game]:v!==''?v:null});
+  document.getElementById(statusId).textContent=v!==''?'🔴 نشط: '+v:'';
+  refRig();toast('🎯 تم تطبيق التحكم على '+game,'ok');
+}
+async function clrRig(game,statusId){
+  await sendAdmin({['rig_'+game]:null});
+  document.getElementById(statusId).textContent='';
+  refRig();toast('✅ تم إلغاء التحكم عن '+game,'ok');
+}
+async function refRig(){
+  const d=await getAdmin();
+  const games=['roulette','dice','mines','plinko'];
+  const labels={roulette:'🎡 روليت',dice:'🎲 ديس',mines:'💣 ألغام',plinko:'🪙 بلينكو'};
+  const active=games.filter(g=>d['rig_'+g]!==null&&d['rig_'+g]!==undefined&&d['rig_'+g]!=='');
+  const el=document.getElementById('rigAll');
+  el.innerHTML=active.length===0
+    ?'<span style="color:rgba(255,255,255,.28)">لا يوجد تحكم نشط — كل الألعاب عشوائية ✅</span>'
+    :active.map(g=>`<span style="background:rgba(255,68,85,.12);border:1px solid rgba(255,68,85,.28);color:var(--red);padding:4px 12px;border-radius:18px;font-weight:700">${labels[g]}: ${d['rig_'+g]}</span>`).join('');
+}
+
+/* ════ PLINKO MULTS ════ */
+const PM_DEF={
+  low:[8.9,3.0,1.4,1.1,1.0,0.5,1.0,1.1,1.4,3.0,8.9],
+  med:[22,5.0,2.0,1.4,0.6,0.4,0.6,1.4,2.0,5.0,22],
+  high:[170,24,8.1,2.0,0.7,0.2,0.7,2.0,8.1,24,170]
+};
+let pmCur={low:[...PM_DEF.low],med:[...PM_DEF.med],high:[...PM_DEF.high]};
+
+async function buildPME(r){
+  const c=document.getElementById('pme-'+r);c.innerHTML='';
+  pmCur[r].forEach((v,i)=>{
+    const d=document.createElement('div');d.className='mit';
+    d.innerHTML=`<input class="mi" type="number" min="0.01" max="2000" step="0.01" value="${v}" id="pmi-${r}-${i}" oninput="pmCur['${r}'][${i}]=parseFloat(this.value)||0">
+    <div class="ml">حزمة ${i+1}</div>`;
+    c.appendChild(d);
+  });
+}
+async function swPTab(r,el){
+  document.querySelectorAll('.tb').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tc').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('ptc-'+r).classList.add('active');
+}
+async function savePM(r){
+  await sendAdmin({['pm_'+r]:pmCur[r]});
+  toast('✅ تم حفظ مضاعفات البلينكو ('+r+')','ok');
+}
+async function resetPM(r){
+  pmCur[r]=[...PM_DEF[r]];buildPME(r);
+  await sendAdmin({['pm_'+r]:PM_DEF[r]});
+  toast('🔄 تمت إعادة ضبط مضاعفات ('+r+')','ok');
+}
+
+/* ════ MINES MULT TABLE ════ */
+async function sendMinesEdge(v){await sendAdmin({mines_edge:parseFloat(v)/100});}
+async function updMinesTable(){
+  const edge=parseFloat(document.getElementById('csl')||3)/100||0.03;
+  const cnts=[1,3,5,10,15,20,24];
+  let html='<thead><tr><th>ألغام</th><th>1🍎</th><th>2🍎</th><th>3🍎</th><th>5🍎</th><th>10🍎</th></tr></thead><tbody>';
+  cnts.forEach(mines=>{
+    html+=`<tr><td style="color:var(--red);font-weight:700">💣${mines}</td>`;
+    [1,2,3,5,10].forEach(s=>{
+      if(s>25-mines){html+='<td style="color:rgba(255,255,255,.18)">—</td>';return;}
+      const m=+(Math.max(1,Math.pow(25/(25-mines),s)*(1-edge))).toFixed(2);
+      html+=`<td style="color:${m>=10?'var(--gold)':m>=2?'var(--green)':'var(--text)'};font-weight:700">${m}x</td>`;
+    });
+    html+='</tr>';
+  });
+  html+='</tbody>';
+  document.getElementById('minesMultTable').innerHTML=html;
+}
+
+/* ════ DICE TABLE ════ */
+async function updDiceA(){updDiceTable();}
+async function updDiceTable(){
+  const edge=parseFloat(document.getElementById('v-d-edge')?.textContent)||1;
+  const thresholds=[10,25,50,75,90,95];
+  let html='<thead><tr><th>الحد</th><th>احتمال الفوز</th><th>المضاعف (مع edge)</th><th>المضاعف بدون edge</th></tr></thead><tbody>';
+  thresholds.forEach(th=>{
+    const mul=+((100-edge)/th).toFixed(3);
+    const mulClean=+(100/th).toFixed(3);
+    html+=`<tr><td style="font-weight:700">أقل من ${th}</td><td style="color:var(--green)">${th}%</td>
+    <td style="color:var(--gold);font-weight:700">${mul}x</td>
+    <td style="color:rgba(255,255,255,.4)">${mulClean}x</td></tr>`;
+  });
+  html+='</tbody>';
+  document.getElementById('diceMultTable').innerHTML=html;
+}
+
+/* ════ DASHBOARD ════ */
+const GNAMES={roulette:'🎡 روليت',rlive:'🔴 روليت لايف',blackjack:'🃏 بلاك جاك',dice:'🎲 ديس',plinko:'🪙 بلينكو',mines:'💣 ألغام',crash:'📈 سلم الربح'};
+async function refDash(){
+  const hist=getHistory();
+  const casino=getCasino();
+  const totalBet=hist.reduce((a,h)=>a+(h.bet||0),0);
+  const totalWon=hist.filter(h=>h.pnl>0).reduce((a,h)=>a+(h.pnl||0),0);
+  const totalLost=hist.filter(h=>h.pnl<0).reduce((a,h)=>a+Math.abs(h.pnl||0),0);
+  const house=totalLost-totalWon;
+  const housePct=totalBet>0?(house/totalBet*100).toFixed(1)+'%':'0%';
+  document.getElementById('d-wager').textContent=fmt(totalBet);
+  document.getElementById('d-house').textContent=fmt(Math.max(0,house));
+  document.getElementById('d-hp').textContent='نسبة: '+housePct;
+  document.getElementById('d-rounds').textContent=hist.length;
+  const players=await getPlayers();
+  document.getElementById('d-bal').textContent=players.length?players.length+' لاعب':'—';
+
+  const adm=await getAdmin();
+  document.getElementById('gameStatList').innerHTML=Object.entries(GNAMES).map(([g,n])=>{
+    const dis=adm['dis_'+g];
+    return`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bdr)">
+      <span style="font-weight:700">${n}</span>
+      <span class="badge ${dis?'boff':'bon'}">${dis?'معطّل':'مفعّل'}</span>
+    </div>`;
+  }).join('');
+
+  const gCnt={};hist.forEach(h=>{gCnt[h.game]=(gCnt[h.game]||0)+1;});
+  const total=hist.length||1;
+  document.getElementById('gameDist').innerHTML=Object.entries(gCnt).map(([g,c])=>{
+    const pct=Math.round(c/total*100);
+    return`<div style="margin-bottom:.7rem">
+      <div style="display:flex;justify-content:space-between;font-size:.8rem;margin-bottom:.25rem">
+        <span>${g}</span><span style="color:var(--gold);font-weight:700">${c} (${pct}%)</span>
+      </div>
+      <div class="rbar"><div class="rfill" style="width:${pct}%;background:var(--gold)"></div></div>
+    </div>`;
+  }).join('')||'<div style="color:rgba(255,255,255,.28);font-size:.82rem">لا يوجد بيانات بعد — العب جولات أولاً</div>';
+
+  document.getElementById('recentRounds').innerHTML=hist.slice(0,10).map(h=>
+    `<tr><td style="font-weight:700">${h.game}</td><td>${fmt(h.bet)}</td>
+    <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h.res||'—'}</td>
+    <td class="${h.pnl>0?'tw':'tl'}">${h.pnl>0?'+':''}${fmt(h.pnl)}</td></tr>`
+  ).join('')||'<tr><td colspan="4" style="text-align:center;color:rgba(255,255,255,.28);padding:1.5rem">لا يوجد جولات بعد</td></tr>';
+}
+
+/* ════ PLAYER (legacy kept) ════ */
+function refPlayer(){}
+
+/* ════ HISTORY ════ */
+let hFlt='all';
+async function refHistory(flt){
+  hFlt=flt;
+  const hist=getHistory();
+  const rows=flt==='all'?hist:hist.filter(h=>h.game===flt);
+  document.getElementById('fullHist').innerHTML=rows.length===0
+    ?'<tr><td colspan="5" style="text-align:center;color:rgba(255,255,255,.28);padding:1.5rem">لا يوجد سجل</td></tr>'
+    :rows.map((h,i)=>`<tr>
+      <td style="color:rgba(255,255,255,.28)">${i+1}</td>
+      <td style="font-weight:700">${h.game}</td>
+      <td>${fmt(h.bet)}</td>
+      <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h.res||'—'}</td>
+      <td class="${h.pnl>0?'tw':'tl'}">${h.pnl>0?'+':''}${fmt(h.pnl)}</td>
+    </tr>`).join('');
+}
+function fltH(f,el){document.querySelectorAll('.tb').forEach(b=>b.classList.remove('active'));el.classList.add('active');refHistory(f);}
+function clearH(){localStorage.removeItem('gr_history');refHistory(hFlt);toast('🗑️ تم مسح السجل','ok');}
+
+/* ════ HELPERS ════ */
+function updV(id,val){const e=document.getElementById('v-'+id);if(e)e.textContent=val;}
+async function saveGame(g){toast('💾 تم حفظ إعدادات '+g,'ok');}
+function fmt(n){return Math.round(n).toLocaleString('ar');}
+function toast(msg,type=''){
+  document.querySelectorAll('.toast').forEach(t=>t.remove());
+  const t=document.createElement('div');t.className='toast '+type;t.textContent=msg;
+  document.body.appendChild(t);setTimeout(()=>t.remove(),2800);
+}
+
+/* ════ CRASH HIST ════ */
+async function loadCrashHist(){
+  const el=document.getElementById('crashHistAdmin');if(!el)return;
+  try{
+    const arr=JSON.parse(localStorage.getItem('gr_crash_hist')||'[]');
+    if(!arr.length){el.innerHTML='<span style="color:rgba(255,255,255,.28);font-size:.8rem">لا يوجد سجل بعد</span>';return;}
+    el.innerHTML=arr.slice(0,20).map(v=>{
+      const col=v>=2?'rgba(0,255,136,.18)':v>=1.5?'rgba(255,215,0,.18)':'rgba(255,68,85,.18)';
+      const tc=v>=2?'var(--green)':v>=1.5?'var(--gold)':'var(--red)';
+      return`<span style="padding:3px 10px;border-radius:16px;font-size:.75rem;font-weight:700;background:${col};color:${tc}">${(+v).toFixed(2)}x</span>`;
+    }).join('');
+  }catch(e){el.innerHTML='<span style="color:rgba(255,255,255,.28);font-size:.8rem">—</span>';}
+}
+
+/* ════ INIT ════ */
+async function initAdmin(){
+  buildPME('low');buildPME('med');buildPME('high');
+  updMinesTable();updDiceTable();
+  refDash();refRig();
+  setInterval(async ()=>{
+    if(document.getElementById('pg-dash').classList.contains('active'))refDash();
+    if(document.getElementById('pg-players').classList.contains('active'))refPlayers();
+    if(document.getElementById('pg-requests').classList.contains('active'))refRequests();
+    const reqs=await getRequests();
+    const pending=reqs.filter(r=>r.status==='pending').length;
+    const badge=document.getElementById('req-badge');
+    if(badge){if(pending>0){badge.style.display='inline';badge.textContent=pending;}else{badge.style.display='none';}}
+  },3000);
+}
+</script>
+</body>
+</html>
