@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>مساعد الشطرنج التفاعلي</title>
+
+  <!-- CSS الخاص بمكتبة الشطرنج -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css" />
+
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    html, body {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      margin: 0;
+      padding: 0;
+      touch-action: none; /* منع التمرير والسحب الكامل للصفحة */
+    }
+
+    body { 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      padding: 8px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+      background-color: #f0f2f5;
+      color: #333;
+    }
+
+    .setup-box {
+      background: #ffffff;
+      padding: 6px 10px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 6px;
+      text-align: center;
+      width: 100%;
+      max-width: 480px;
+    }
+    .setup-box label { font-size: 14px; font-weight: bold; margin-left: 6px; }
+    .setup-box select { padding: 4px 8px; font-size: 13px; border-radius: 4px; border: 1px solid #ccc; }
+    
+    #status {
+      font-size: 13px;
+      font-weight: bold;
+      margin-bottom: 4px;
+      padding: 6px 10px;
+      background: #ffffff;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      width: 100%;
+      max-width: 480px;
+      text-align: center;
+    }
+    #suggestion {
+      font-size: 14px;
+      font-weight: bold;
+      margin-bottom: 8px;
+      padding: 6px 10px;
+      background: #e3f2fd;
+      color: #0d47a1;
+      border-radius: 6px;
+      border: 1px solid #bbdefb;
+      width: 100%;
+      max-width: 480px;
+      text-align: center;
+    }
+
+    /* حاوية الرقعة الثابتة */
+    .board-container {
+      position: relative;
+      width: 90vw;
+      height: 90vw;
+      max-width: 420px;
+      max-height: 420px;
+      margin-bottom: 8px;
+      touch-action: none;
+    }
+    #board { 
+      width: 100%; 
+      height: 100%;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      border-radius: 4px;
+      overflow: hidden;
+      touch-action: none;
+    }
+    #arrowCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .controls {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 8px;
+      width: 100%;
+      max-width: 480px;
+    }
+    .btn {
+      flex: 1;
+      padding: 8px 2px;
+      font-size: 12px;
+      font-weight: bold;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      transition: background-color 0.2s, transform 0.1s;
+    }
+    .btn:hover { background-color: #0056b3; }
+    .btn:active { transform: scale(0.98); }
+    .btn-danger { background-color: #dc3545; }
+    .btn-danger:hover { background-color: #bd2130; }
+    .btn-success { background-color: #28a745; }
+    .btn-success:hover { background-color: #218838; }
+
+    #moves { 
+      width: 100%; 
+      max-width: 480px;
+      border: 1px solid #ccc; 
+      padding: 8px; 
+      background: #ffffff; 
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      flex: 1;
+      max-height: 100px;
+      overflow: hidden;
+    }
+    #moves h3 { margin: 0 0 4px 0; text-align: center; color: #333; font-size: 13px; }
+    #moves ul { 
+      list-style: none; 
+      padding: 0; 
+      max-height: 65px; 
+      overflow-y: auto; 
+      margin: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      touch-action: pan-y; /* السماح بالتمرير فقط داخل السجل */
+    }
+    #moves li { 
+      padding: 2px 6px;
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    /* التظليل عند الضغط على المربع */
+    .highlight-selected {
+      background-color: rgba(255, 235, 59, 0.75) !important;
+      box-shadow: inset 0 0 0 3px #f57f17;
+    }
+    .possible-move-dot {
+      position: relative;
+    }
+    .possible-move-dot::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 32%;
+      height: 32%;
+      background-color: rgba(0, 0, 0, 0.25);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .possible-capture-ring {
+      position: relative;
+    }
+    .possible-capture-ring::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      border: 4px solid rgba(220, 53, 69, 0.65);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+  </style>
+
+  <!-- المكتبات المطلوبة (مكتبة chessboard-js تحتاج jQuery إجبارياً حتى تشتغل) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+  <script>
+    // شبكة احتياطية: إذا رابط cdnjs الأساسي لـ jQuery فشل، جرب مصدر بديل
+    if (typeof jQuery === 'undefined') {
+      document.write('<scr' + 'ipt src="https://code.jquery.com/jquery-3.6.0.min.js"></scr' + 'ipt>');
+    }
+  </script>
+</head>
+<body>
+
+  <div class="setup-box">
+    <label for="playerColor">اختر لون قطعك:</label>
+    <select id="playerColor" onchange="changePlayerColor()">
+      <option value="w" selected>الأبيض ⚪</option>
+      <option value="b">الأسود ⬛</option>
+    </select>
+  </div>
+
+  <div id="status">جاري التحميل...</div>
+  <div id="suggestion">💡 النقلة المقترحة: جاري الحساب...</div>
+
+  <div class="board-container">
+    <div id="board"></div>
+    <canvas id="arrowCanvas"></canvas>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-success" onclick="getBestMove()">💡 اقترح نقلة</button>
+    <button class="btn" onclick="playSuggestedMove()" style="background-color:#17a2b8;">✅ تم</button>
+    <button class="btn" onclick="undoMove()">تراجع ↩️</button>
+    <button class="btn btn-danger" onclick="resetGame()">إعادة 🔄</button>
+  </div>
+
+  <div class="moves" id="moves">
+    <h3>سجل النقلات</h3>
+    <ul id="moveList"></ul>
+  </div>
+
+  <script>
+    // منع حركة الصفحة والسحب التلقائي في أجهزة اللمس
+    document.addEventListener('touchmove', function(e) {
+      if (!e.target.closest('#moveList')) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    var board = null;
+    var game = new Chess();
+    var playerColor = 'w';
+    var selectedSquare = null;
+    var currentBestMove = null;
+    var moveAudio = new Audio('https://images.chesscomfiles.com/chess-themes/sounds/_default/mp3/move-self.mp3');
+
+    function pieceTheme (piece) {
+      var pieceMap = {
+        'wP': 'https://upload.wikimedia.org/wikipedia/commons/4/45/Chess_plt45.svg',
+        'wN': 'https://upload.wikimedia.org/wikipedia/commons/7/70/Chess_nlt45.svg',
+        'wB': 'https://upload.wikimedia.org/wikipedia/commons/b/b1/Chess_blt45.svg',
+        'wR': 'https://upload.wikimedia.org/wikipedia/commons/7/72/Chess_rlt45.svg',
+        'wQ': 'https://upload.wikimedia.org/wikipedia/commons/1/15/Chess_qlt45.svg',
+        'wK': 'https://upload.wikimedia.org/wikipedia/commons/4/42/Chess_klt45.svg',
+        'bP': 'https://upload.wikimedia.org/wikipedia/commons/c/c7/Chess_pdt45.svg',
+        'bN': 'https://upload.wikimedia.org/wikipedia/commons/e/ef/Chess_ndt45.svg',
+        'bB': 'https://upload.wikimedia.org/wikipedia/commons/9/98/Chess_bdt45.svg',
+        'bR': 'https://upload.wikimedia.org/wikipedia/commons/ff/ff/Chess_rdt45.svg',
+        'bQ': 'https://upload.wikimedia.org/wikipedia/commons/4/47/Chess_qdt45.svg',
+        'bK': 'https://upload.wikimedia.org/wikipedia/commons/f/f0/Chess_kdt45.svg'
+      };
+      return pieceMap[piece];
+    }
+
+    $(document).ready(function() {
+      board = Chessboard('board', {
+        position: 'start',
+        draggable: false, // إيقاف السحب والإفلات لمنع تهنيج الشاشة
+        pieceTheme: pieceTheme
+      });
+
+      setTimeout(function() {
+        board.resize();
+        resizeCanvas();
+        updateStatus();
+      }, 150);
+
+      bindSquareClickEvents();
+    });
+
+    // *** الإصلاح: استخدام حدث واحد فقط (click) بدل ثلاثة أحداث معاً ***
+    // كان الكود يربط click + pointerdown + touchend على نفس العنصر،
+    // فباللمسة الواحدة يشتغل pointerdown (يحدد المربع) ثم مباشرة touchend
+    // على نفس المربع فيلغي التحديد فوراً. حدث واحد يحل المشكلة نهائياً.
+    function bindSquareClickEvents() {
+      $('#board').on('click', '.square-55d63', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var square = $(this).attr('data-square');
+        if (!square) return;
+        handleSquareClick(square);
+      });
+    }
+
+    function resizeCanvas() {
+      var canvas = document.getElementById('arrowCanvas');
+      var container = document.querySelector('.board-container');
+      if (!container || !canvas) return;
+      canvas.width = container.clientWidth;
+      canvas.height = container.clientHeight;
+      if (currentBestMove) {
+        drawArrow(currentBestMove.from, currentBestMove.to);
+      }
+    }
+
+    window.addEventListener('resize', function() {
+      if (board) board.resize();
+      resizeCanvas();
+    });
+
+    function removeHighlights() {
+      $('#board .square-55d63').removeClass('highlight-selected possible-move-dot possible-capture-ring');
+    }
+
+    function handleSquareClick(square) {
+      if (game.game_over()) return;
+
+      var piece = game.get(square);
+
+      if (selectedSquare === null) {
+        if (piece && piece.color === game.turn()) {
+          selectedSquare = square;
+          highlightPossibleMoves(square);
+        }
+        return;
+      }
+
+      if (selectedSquare === square) {
+        selectedSquare = null;
+        removeHighlights();
+        return;
+      }
+
+      if (piece && piece.color === game.turn()) {
+        selectedSquare = square;
+        highlightPossibleMoves(square);
+        return;
+      }
+
+      var move = game.move({
+        from: selectedSquare,
+        to: square,
+        promotion: 'q'
+      });
+
+      if (move !== null) {
+        selectedSquare = null;
+        removeHighlights();
+        board.position(game.fen());
+        clearArrow();
+        try { moveAudio.play(); } catch(err){}
+        updateStatus();
+      } else {
+        selectedSquare = null;
+        removeHighlights();
+      }
+    }
+
+    function highlightPossibleMoves(square) {
+      removeHighlights();
+      $('#board .square-' + square).addClass('highlight-selected');
+
+      var moves = game.moves({ square: square, verbose: true });
+      for (var i = 0; i < moves.length; i++) {
+        var targetSquare = moves[i].to;
+        var targetPiece = game.get(targetSquare);
+        if (targetPiece) {
+          $('#board .square-' + targetSquare).addClass('possible-capture-ring');
+        } else {
+          $('#board .square-' + targetSquare).addClass('possible-move-dot');
+        }
+      }
+    }
+
+    function changePlayerColor() {
+      playerColor = $('#playerColor').val();
+      board.orientation(playerColor === 'w' ? 'white' : 'black');
+      selectedSquare = null;
+      removeHighlights();
+      clearArrow();
+      updateStatus();
+    }
+
+    function clearArrow() {
+      currentBestMove = null;
+      var canvas = document.getElementById('arrowCanvas');
+      if (!canvas) return;
+      var ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function drawArrow(fromSquare, toSquare) {
+      var canvas = document.getElementById('arrowCanvas');
+      if (!canvas) return;
+      var ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      var width = canvas.width;
+      var tileSize = width / 8;
+
+      function squareToCoords(square) {
+        var col = square.charCodeAt(0) - 97;
+        var row = 8 - parseInt(square.charAt(1));
+
+        if (board.orientation() === 'black') {
+          col = 7 - col;
+          row = 7 - row;
+        }
+
+        return {
+          x: col * tileSize + tileSize / 2,
+          y: row * tileSize + tileSize / 2
+        };
+      }
+
+      var from = squareToCoords(fromSquare);
+      var to = squareToCoords(toSquare);
+
+      var headlen = tileSize * 0.3;
+      var angle = Math.atan2(to.y - from.y, to.x - from.x);
+
+      ctx.beginPath();
+      ctx.moveTo(from.x, from.y);
+      ctx.lineTo(to.x, to.y);
+      ctx.strokeStyle = 'rgba(40, 167, 69, 0.85)';
+      ctx.lineWidth = tileSize * 0.18;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(to.x, to.y);
+      ctx.lineTo(to.x - headlen * Math.cos(angle - Math.PI / 6), to.y - headlen * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(to.x - headlen * Math.cos(angle + Math.PI / 6), to.y - headlen * Math.sin(angle + Math.PI / 6));
+      ctx.lineTo(to.x, to.y);
+      ctx.fillStyle = 'rgba(40, 167, 69, 0.95)';
+      ctx.fill();
+    }
+
+    function evaluateBoard(boardState) {
+      var totalEvaluation = 0;
+      var pieceValues = { 'p': 10, 'r': 50, 'n': 30, 'b': 30, 'q': 90, 'k': 900 };
+
+      for (var i = 0; i < 8; i++) {
+        for (var j = 0; j < 8; j++) {
+          var piece = boardState[i][j];
+          if (piece) {
+            var val = pieceValues[piece.type];
+            totalEvaluation += (piece.color === 'w' ? val : -val);
+          }
+        }
+      }
+      return totalEvaluation;
+    }
+
+    function minimax(gameObj, depth, alpha, beta, isMaximizing) {
+      if (depth === 0 || gameObj.game_over()) {
+        return evaluateBoard(gameObj.board());
+      }
+
+      var moves = gameObj.moves();
+      if (isMaximizing) {
+        var bestEval = -9999;
+        for (var i = 0; i < moves.length; i++) {
+          gameObj.move(moves[i]);
+          var eval = minimax(gameObj, depth - 1, alpha, beta, false);
+          gameObj.undo();
+          bestEval = Math.max(bestEval, eval);
+          alpha = Math.max(alpha, eval);
+          if (beta <= alpha) break;
+        }
+        return bestEval;
+      } else {
+        var bestEval = 9999;
+        for (var i = 0; i < moves.length; i++) {
+          gameObj.move(moves[i]);
+          var eval = minimax(gameObj, depth - 1, alpha, beta, true);
+          gameObj.undo();
+          bestEval = Math.min(bestEval, eval);
+          beta = Math.min(beta, eval);
+          if (beta <= alpha) break;
+        }
+        return bestEval;
+      }
+    }
+
+    function getBestMove() {
+      if (game.game_over()) return;
+
+      var moves = game.moves({ verbose: true });
+      if (moves.length === 0) return;
+
+      $('#suggestion').html('⏳ جاري رسم السهم لأفضل نقلة...');
+
+      setTimeout(function() {
+        var bestMove = null;
+        var isMaximizing = (game.turn() === 'w');
+        var bestEval = isMaximizing ? -9999 : 9999;
+
+        for (var i = 0; i < moves.length; i++) {
+          game.move(moves[i]);
+          var eval = minimax(game, 2, -10000, 10000, !isMaximizing);
+          game.undo();
+
+          if (isMaximizing) {
+            if (eval > bestEval) {
+              bestEval = eval;
+              bestMove = moves[i];
+            }
+          } else {
+            if (eval < bestEval) {
+              bestEval = eval;
+              bestMove = moves[i];
+            }
+          }
+        }
+
+        if (bestMove) {
+          currentBestMove = bestMove;
+          $('#suggestion').html('🎯 تحرك من <b>' + bestMove.from + '</b> إلى <b>' + bestMove.to + '</b> (' + bestMove.san + ')');
+          drawArrow(bestMove.from, bestMove.to);
+        }
+      }, 50);
+    }
+
+    function updateStatus () {
+      var status = '';
+      var turnColor = game.turn() === 'w' ? 'الأبيض' : 'الأسود';
+
+      if (game.in_checkmate()) {
+        status = 'انتهت اللعبة، كش ملك! الفائز: ' + (game.turn() === 'w' ? 'الأسود' : 'الأبيض');
+        clearArrow();
+      } else if (game.in_draw()) {
+        status = 'انتهت اللعبة بالتعادل!';
+        clearArrow();
+      } else {
+        status = 'الدور الحالي: ' + turnColor;
+        if (game.turn() === playerColor) {
+          status += ' (دورك أنت 👍)';
+        } else {
+          status += ' (حرك قطعة خصمك هنا ♟️)';
+        }
+        if (game.in_check()) {
+          status += ' - [كش ملك!]';
+        }
+      }
+
+      $('#status').html(status);
+      renderMoveHistory();
+
+      if (!game.game_over() && game.turn() === playerColor) {
+        getBestMove();
+      } else if (game.turn() !== playerColor) {
+        clearArrow();
+        $('#suggestion').html('⏳ بانتظار تحريك قطعة الخصم...');
+      }
+    }
+
+    function renderMoveHistory() {
+      var history = game.history();
+      var moveList = $('#moveList');
+      moveList.empty();
+      history.forEach(function(move, index) {
+        var num = Math.floor(index / 2) + 1;
+        var prefix = index % 2 === 0 ? num + '. ' : '';
+        moveList.append('<li>' + prefix + move + '</li>');
+      });
+      var ul = document.getElementById("moveList");
+      if(ul) ul.scrollTop = ul.scrollHeight;
+    }
+
+    function playSuggestedMove() {
+      if (!currentBestMove) {
+        $('#suggestion').html('⚠️ ما فيه نقلة مقترحة حالياً، دوس "اقترح نقلة" أول');
+        return;
+      }
+      var move = game.move({
+        from: currentBestMove.from,
+        to: currentBestMove.to,
+        promotion: 'q'
+      });
+      if (move !== null) {
+        selectedSquare = null;
+        removeHighlights();
+        board.position(game.fen());
+        clearArrow();
+        try { moveAudio.play(); } catch(err){}
+        updateStatus();
+      }
+    }
+
+    function undoMove() {
+      selectedSquare = null;
+      removeHighlights();
+      game.undo();
+      if (board) board.position(game.fen());
+      clearArrow();
+      updateStatus();
+    }
+
+    function resetGame() {
+      selectedSquare = null;
+      removeHighlights();
+      game.reset();
+      if (board) board.start();
+      clearArrow();
+      changePlayerColor();
+    }
+  </script>
+</body>
+</html>
