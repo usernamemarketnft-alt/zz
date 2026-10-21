@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FCDADF">
+<title>يمومتي</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💗</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FCDADF;
+    --bg-deep:#F9C4CF;
+    --pink:#EC5F8A;
+    --pink-dark:#D44A74;
+    --pink-soft:#FF9FBB;
+    --ink:#6B2A41;
+    --white:#FFFFFF;
+    --font:'Baloo Bhaijaan 2','Segoe UI',Tahoma,'Noto Sans Arabic',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;background:var(--bg);font-family:var(--font);color:var(--ink);overflow:hidden}
+  button,input{font-family:inherit}
+
+  .screen{position:fixed;inset:0;display:none}
+  .screen.active{display:flex}
+
+  /* ============ شاشة البداية ============ */
+  #splash{
+    align-items:center;justify-content:center;flex-direction:column;
+    background:var(--bg);cursor:pointer;z-index:10;
+    transition:opacity .7s ease, transform .7s ease;
+  }
+  #splash.out{opacity:0;transform:scale(1.04);pointer-events:none}
+  .logo-row{
+    direction:ltr;display:flex;align-items:center;justify-content:center;gap:10px;
+    width:100%;padding:0 12px;
+  }
+  .spark{width:clamp(30px,9vw,52px);height:auto;flex:none;opacity:0;animation:sparkIn .6s ease forwards}
+  .spark.right{animation-delay:.9s}
+  .spark.left{animation-delay:.75s}
+  .heart-wrap{
+    width:clamp(70px,22vw,120px);flex:none;
+    opacity:0;transform:scale(.2) rotate(-12deg);
+    animation:heartPop .8s cubic-bezier(.2,1.5,.4,1) .15s forwards;
+  }
+  .heart-wrap svg{width:100%;height:auto;display:block;animation:beat 1.5s ease-in-out 1.2s infinite;transform-origin:50% 60%}
+  .title{
+    font-size:clamp(44px,15vw,84px);font-weight:600;color:var(--pink);line-height:1.1;
+    padding-bottom:.12em;
+    opacity:0;transform:translateY(14px);
+    animation:titleIn .7s ease .55s forwards;
+  }
+  .hint{
+    position:absolute;bottom:calc(36px + env(safe-area-inset-bottom,0px));
+    font-size:15px;color:var(--pink-dark);opacity:0;animation:hintIn .8s ease 1.8s forwards;
+  }
+  @keyframes heartPop{to{opacity:1;transform:scale(1) rotate(0)}}
+  @keyframes titleIn{to{opacity:1;transform:translateY(0)}}
+  @keyframes sparkIn{to{opacity:.9}}
+  @keyframes hintIn{to{opacity:.75}}
+  @keyframes beat{0%,100%{transform:scale(1)}14%{transform:scale(1.1)}28%{transform:scale(1)}42%{transform:scale(1.07)}70%{transform:scale(1)}}
+
+  /* ============ شاشة الدخول ============ */
+  #login{
+    align-items:center;justify-content:center;flex-direction:column;padding:24px;
+    background:linear-gradient(180deg,var(--bg) 0%,var(--bg-deep) 100%);
+  }
+  .card{
+    width:100%;max-width:360px;background:rgba(255,255,255,.7);
+    border-radius:28px;padding:28px 22px;text-align:center;
+    box-shadow:0 10px 40px rgba(212,74,116,.18);
+  }
+  .card h2{font-size:28px;font-weight:600;color:var(--pink);margin-bottom:4px}
+  .card p.sub{font-size:15px;margin-bottom:18px;opacity:.8}
+  .who{display:flex;gap:10px;margin-bottom:14px}
+  .who button{
+    flex:1;border:2px solid transparent;background:var(--white);color:var(--ink);
+    border-radius:18px;padding:12px 6px;font-size:18px;font-weight:600;cursor:pointer;
+    transition:.15s;
+  }
+  .who button.sel{border-color:var(--pink);background:#FFF0F4;color:var(--pink-dark)}
+  .field{
+    width:100%;border:2px solid #F6C3D0;background:var(--white);border-radius:18px;
+    padding:13px 16px;font-size:18px;color:var(--ink);outline:none;text-align:center;
+    margin-bottom:12px;direction:ltr;
+  }
+  .field:focus{border-color:var(--pink)}
+  .btn{
+    width:100%;border:none;background:var(--pink);color:#fff;border-radius:18px;
+    padding:14px;font-size:20px;font-weight:600;cursor:pointer;
+    box-shadow:0 6px 16px rgba(236,95,138,.4);transition:transform .1s;
+  }
+  .btn:active{transform:scale(.97)}
+  .btn:disabled{opacity:.6}
+  .err{color:#C0264F;font-size:15px;min-height:22px;margin-top:10px}
+
+  /* ============ شاشة المراسلة ============ */
+  #chat{flex-direction:column;background:var(--bg)}
+  header.top{
+    flex:none;display:flex;align-items:center;gap:10px;
+    padding:calc(10px + env(safe-area-inset-top,0px)) 14px 10px;
+    background:rgba(255,255,255,.75);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+    box-shadow:0 2px 14px rgba(212,74,116,.12);
+  }
+  header.top .av{
+    width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--pink-soft),var(--pink));
+    display:flex;align-items:center;justify-content:center;font-size:22px;flex:none;
+  }
+  header.top .nm{flex:1;min-width:0}
+  header.top .nm b{display:block;font-size:20px;font-weight:600;color:var(--pink-dark);line-height:1.2}
+  header.top .nm span{font-size:13px;opacity:.7}
+  .out-btn{background:none;border:none;font-size:14px;color:var(--pink-dark);cursor:pointer;padding:8px}
+
+  #msgs{
+    flex:1;overflow-y:auto;padding:14px 12px;display:flex;flex-direction:column;gap:6px;
+    -webkit-overflow-scrolling:touch;
+    background:
+      radial-gradient(circle at 20% 10%,rgba(255,255,255,.5),transparent 40%),
+      var(--bg);
+  }
+  .empty{margin:auto;text-align:center;font-size:18px;opacity:.65;line-height:1.7}
+  .day{align-self:center;font-size:12px;background:rgba(255,255,255,.65);padding:3px 12px;border-radius:12px;margin:8px 0 4px;opacity:.85}
+  .msg{
+    max-width:78%;padding:9px 14px 6px;border-radius:20px;font-size:18px;line-height:1.5;
+    word-wrap:break-word;overflow-wrap:anywhere;white-space:pre-wrap;
+    animation:pop .22s ease;
+  }
+  .msg .t{display:block;font-size:11px;opacity:.65;margin-top:2px;text-align:left;direction:ltr;white-space:normal}
+  .msg.me{align-self:flex-start;background:linear-gradient(135deg,var(--pink-soft),var(--pink));color:#fff;border-bottom-right-radius:6px}
+  .msg.other{align-self:flex-end;background:var(--white);color:var(--ink);border-bottom-left-radius:6px;box-shadow:0 2px 8px rgba(212,74,116,.1)}
+  @keyframes pop{from{opacity:0;transform:scale(.92) translateY(6px)}to{opacity:1;transform:none}}
+
+  form.bar{
+    flex:none;display:flex;align-items:flex-end;gap:8px;
+    padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));
+    background:rgba(255,255,255,.75);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  }
+  #txt{
+    flex:1;resize:none;border:2px solid #F6C3D0;background:var(--white);border-radius:22px;
+    padding:10px 16px;font-size:18px;font-family:inherit;color:var(--ink);outline:none;
+    max-height:120px;line-height:1.4;
+  }
+  #txt:focus{border-color:var(--pink)}
+  .send{
+    flex:none;width:48px;height:48px;border-radius:50%;border:none;cursor:pointer;
+    background:var(--pink);display:flex;align-items:center;justify-content:center;
+    box-shadow:0 4px 12px rgba(236,95,138,.45);transition:transform .1s;
+  }
+  .send:active{transform:scale(.9)}
+  .send svg{width:22px;height:22px;fill:#fff;transform:scaleX(-1)}
+
+  .setup{
+    margin:auto;max-width:340px;text-align:center;background:#fff;border-radius:22px;padding:22px;line-height:1.8;
+    font-size:17px;
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+    .heart-wrap,.title,.spark,.hint{opacity:1;transform:none}
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ شاشة البداية ============ -->
+<div id="splash" class="screen active" role="button" aria-label="ادخل">
+  <div class="logo-row">
+    <!-- شرارات اليسار -->
+    <svg class="spark left" viewBox="0 0 60 90" fill="none" stroke="#F0759A" stroke-width="5" stroke-linecap="round">
+      <line x1="8" y1="8" x2="38" y2="30"/>
+      <line x1="4" y1="46" x2="42" y2="50"/>
+      <line x1="10" y1="82" x2="36" y2="64"/>
+    </svg>
+
+    <!-- القلب -->
+    <div class="heart-wrap">
+      <svg viewBox="0 0 120 110" aria-hidden="true">
+        <defs>
+          <linearGradient id="hg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#FFB0C6"/>
+            <stop offset="1" stop-color="#FF8FB1"/>
+          </linearGradient>
+        </defs>
+        <path d="M60 100 C20 74 6 52 8 36 C10 20 24 10 38 12 C48 13 56 20 60 28 C66 16 78 8 90 12 C106 17 114 34 108 52 C102 70 82 88 60 100 Z"
+              fill="url(#hg)" stroke="#D44A74" stroke-width="7" stroke-linejoin="round"/>
+        <path d="M30 34 C34 28 42 26 48 30" stroke="#fff" stroke-width="6" stroke-linecap="round" fill="none" opacity=".85"/>
+        <path d="M84 30 C90 33 92 40 90 46" stroke="#fff" stroke-width="6" stroke-linecap="round" fill="none" opacity=".85"/>
+        <circle cx="90" cy="58" r="3.5" fill="#fff" opacity=".8"/>
+      </svg>
+    </div>
+
+    <div class="title">يمومتي</div>
+
+    <!-- شرارات اليمين -->
+    <svg class="spark right" viewBox="0 0 60 90" fill="none" stroke="#F0759A" stroke-width="5" stroke-linecap="round">
+      <line x1="52" y1="8" x2="22" y2="26"/>
+      <line x1="56" y1="46" x2="18" y2="40"/>
+      <line x1="46" y1="84" x2="24" y2="62"/>
+    </svg>
+  </div>
+  <div class="hint">المس الشاشة للدخول</div>
+</div>
+
+<!-- ============ شاشة الدخول ============ -->
+<div id="login" class="screen">
+  <div class="card">
+    <h2>يمومتي 💗</h2>
+    <p class="sub">منو أنت؟</p>
+    <div class="who">
+      <button type="button" id="b-yousif" data-id="yousif">يوسف</button>
+      <button type="button" id="b-yomomti" data-id="yomomti">يمومتي</button>
+    </div>
+    <input class="field" id="pass" type="password" placeholder="كلمة السر" autocomplete="current-password">
+    <button class="btn" id="go">دخول</button>
+    <div class="err" id="err"></div>
+  </div>
+</div>
+
+<!-- ============ شاشة المراسلة ============ -->
+<div id="chat" class="screen">
+  <header class="top">
+    <div class="av">💗</div>
+    <div class="nm"><b id="peer">يمومتي</b><span>محادثة خاصة بيننا</span></div>
+    <button class="out-btn" id="logout">خروج</button>
+  </header>
+  <div id="msgs"></div>
+  <form class="bar" id="form" autocomplete="off">
+    <textarea id="txt" rows="1" placeholder="اكتب رسالتك..."></textarea>
+    <button class="send" type="submit" aria-label="إرسال">
+      <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+    </button>
+  </form>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut }
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, collection, addDoc, query, orderBy, limitToLast, onSnapshot, serverTimestamp }
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  /* =====================================================
+     ⬇️⬇️  الصق إعدادات Firebase هنا مكان الكلمات ⬇️⬇️
+     ===================================================== */
+  const firebaseConfig = {
+    apiKey: "AIzaSyDBROLCQ8LvLX-aY-VZiyaJp8wYTFV2f0c",
+    authDomain: "ymamah-9ce4b.firebaseapp.com",
+    projectId: "ymamah-9ce4b",
+    storageBucket: "ymamah-9ce4b.firebasestorage.app",
+    messagingSenderId: "702711387702",
+    appId: "1:702711387702:web:01d288cbef75d34d932a97"
+  };
+  /* ===================================================== */
+
+  // الشخصين (لا تغيّر الإيميلات إلا إذا غيّرتها بـ Firebase)
+  const USERS = {
+    yousif:  { email: "yousif@love.chat",  name: "يوسف" },
+    yomomti: { email: "yomomti@love.chat", name: "يمومتي" }
+  };
+
+  const $ = id => document.getElementById(id);
+  const show = id => {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    $(id).classList.add('active');
+  };
+
+  const configured = !firebaseConfig.apiKey.startsWith("ضع_");
+  let auth, db;
+  if (configured) {
+    const app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getFirestore(app);
+  }
+
+  /* ---------- شاشة البداية ---------- */
+  let splashDone = false, authReady = false, currentUser = null;
+  const splash = $('splash');
+
+  function leaveSplash() {
+    if (splashDone) return;
+    splashDone = true;
+    splash.classList.add('out');
+    setTimeout(() => { splash.style.display = 'none'; route(); }, 650);
+  }
+  splash.addEventListener('click', leaveSplash);
+  setTimeout(leaveSplash, 3800);
+
+  /* ---------- التوجيه ---------- */
+  function route() {
+    if (!splashDone) return;
+    if (!configured) { showSetupNotice(); return; }
+    if (!authReady) return;
+    if (currentUser) openChat(); else { show('login'); }
+  }
+
+  function showSetupNotice() {
+    show('chat');
+    $('msgs').innerHTML = '<div class="setup">⚙️ الموقع شغّال، بس لازم تحط إعدادات Firebase داخل الملف (مكان <b>firebaseConfig</b>) وترفعه من جديد.</div>';
+    $('form').style.display = 'none';
+  }
+
+  if (configured) {
+    onAuthStateChanged(auth, user => {
+      currentUser = user; authReady = true;
+      if (!user && chatUnsub) { chatUnsub(); chatUnsub = null; }
+      route();
+    });
+  }
+
+  /* ---------- الدخول ---------- */
+  let chosen = localStorage.getItem('who') || 'yousif';
+  function paintChoice() {
+    document.querySelectorAll('.who button').forEach(b => b.classList.toggle('sel', b.dataset.id === chosen));
+  }
+  document.querySelectorAll('.who button').forEach(b => b.addEventListener('click', () => {
+    chosen = b.dataset.id; localStorage.setItem('who', chosen); paintChoice();
+  }));
+  paintChoice();
+
+  async function doLogin() {
+    const pass = $('pass').value;
+    $('err').textContent = '';
+    if (!pass) { $('err').textContent = 'اكتب كلمة السر'; return; }
+    $('go').disabled = true;
+    try {
+      await signInWithEmailAndPassword(auth, USERS[chosen].email, pass);
+      $('pass').value = '';
+    } catch (e) {
+      $('err').textContent = 'كلمة السر غلط أو الحساب مو مضاف بـ Firebase';
+    }
+    $('go').disabled = false;
+  }
+  $('go').addEventListener('click', doLogin);
+  $('pass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  $('logout').addEventListener('click', () => signOut(auth));
+
+  /* ---------- المراسلة ---------- */
+  let chatUnsub = null, me = null, lastDay = '';
+
+  function whoAmI(user) {
+    return user.email === USERS.yousif.email ? 'yousif' : 'yomomti';
+  }
+
+  function dayLabel(d) {
+    const today = new Date(); const y = new Date(); y.setDate(today.getDate() - 1);
+    if (d.toDateString() === today.toDateString()) return 'اليوم';
+    if (d.toDateString() === y.toDateString()) return 'أمس';
+    return d.toLocaleDateString('ar-IQ', { day: 'numeric', month: 'long' });
+  }
+
+  function openChat() {
+    me = whoAmI(currentUser);
+    $('peer').textContent = me === 'yousif' ? USERS.yomomti.name : USERS.yousif.name;
+    $('form').style.display = '';
+    show('chat');
+    if (chatUnsub) return;
+
+    const q = query(collection(db, 'messages'), orderBy('createdAt', 'asc'), limitToLast(300));
+    chatUnsub = onSnapshot(q, snap => {
+      const box = $('msgs');
+      const nearBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 140;
+      box.innerHTML = ''; lastDay = '';
+      if (snap.empty) {
+        box.innerHTML = '<div class="empty">💗<br>ابدي أول رسالة بينكم</div>';
+        return;
+      }
+      snap.forEach(doc => {
+        const m = doc.data({ serverTimestamps: 'estimate' });
+        const d = m.createdAt ? m.createdAt.toDate() : new Date();
+        const dl = dayLabel(d);
+        if (dl !== lastDay) {
+          lastDay = dl;
+          const s = document.createElement('div'); s.className = 'day'; s.textContent = dl; box.appendChild(s);
+        }
+        const el = document.createElement('div');
+        el.className = 'msg ' + (m.from === me ? 'me' : 'other');
+        el.appendChild(document.createTextNode(m.text));
+        const t = document.createElement('span'); t.className = 't';
+        t.textContent = d.toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit' });
+        el.appendChild(t);
+        box.appendChild(el);
+      });
+      if (nearBottom || snap.size < 3) box.scrollTop = box.scrollHeight;
+    }, err => {
+      $('msgs').innerHTML = '<div class="setup">ما كدرت أقرأ الرسائل 😢<br>تأكد من قواعد Firestore (Rules) ومن إضافة الحسابين.</div>';
+      console.error(err);
+    });
+    setTimeout(() => { const b = $('msgs'); b.scrollTop = b.scrollHeight; }, 400);
+  }
+
+  const txt = $('txt');
+  txt.addEventListener('input', () => { txt.style.height = 'auto'; txt.style.height = Math.min(txt.scrollHeight, 120) + 'px'; });
+  txt.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey && window.matchMedia('(hover:hover)').matches) {
+      e.preventDefault(); $('form').requestSubmit();
+    }
+  });
+
+  $('form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const text = txt.value.trim();
+    if (!text || !me) return;
+    txt.value = ''; txt.style.height = 'auto';
+    try {
+      await addDoc(collection(db, 'messages'), { text, from: me, createdAt: serverTimestamp() });
+      const b = $('msgs'); b.scrollTop = b.scrollHeight;
+    } catch (err) {
+      txt.value = text;
+      alert('الرسالة ما انرسلت، تأكد من النت');
+    }
+    txt.focus();
+  });
+</script>
+</body>
+</html>
